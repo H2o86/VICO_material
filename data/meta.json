@@ -1,0 +1,310 @@
+{
+  "total_materials": 40167,
+  "internal_materials": 4,
+  "standards": [
+    {
+      "standard": "NOI_BO",
+      "country": "Việt Nam (Nội bộ Công ty)",
+      "is_internal": 1,
+      "mat_count": 4
+    },
+    {
+      "standard": "ASTM",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 4899
+    },
+    {
+      "standard": "ROPRIETARY",
+      "country": "P",
+      "is_internal": 0,
+      "mat_count": 3587
+    },
+    {
+      "standard": "UNS",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 2740
+    },
+    {
+      "standard": "EN",
+      "country": "European Union",
+      "is_internal": 0,
+      "mat_count": 2628
+    },
+    {
+      "standard": "DIN",
+      "country": "Germany",
+      "is_internal": 0,
+      "mat_count": 2606
+    },
+    {
+      "standard": "AFNOR NF",
+      "country": "France",
+      "is_internal": 0,
+      "mat_count": 2334
+    },
+    {
+      "standard": "WN",
+      "country": "Germany",
+      "is_internal": 0,
+      "mat_count": 2307
+    },
+    {
+      "standard": "JIS",
+      "country": "Japan",
+      "is_internal": 0,
+      "mat_count": 2122
+    },
+    {
+      "standard": "ASME",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 1948
+    },
+    {
+      "standard": "SAE",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 1938
+    },
+    {
+      "standard": "B.S.",
+      "country": "United Kingdom",
+      "is_internal": 0,
+      "mat_count": 1605
+    },
+    {
+      "standard": "ISO",
+      "country": "International",
+      "is_internal": 0,
+      "mat_count": 1027
+    },
+    {
+      "standard": "GOST",
+      "country": "Russia",
+      "is_internal": 0,
+      "mat_count": 1011
+    },
+    {
+      "standard": "GB",
+      "country": "China",
+      "is_internal": 0,
+      "mat_count": 918
+    },
+    {
+      "standard": "UNI",
+      "country": "Italy",
+      "is_internal": 0,
+      "mat_count": 916
+    },
+    {
+      "standard": "UNE",
+      "country": "Spain",
+      "is_internal": 0,
+      "mat_count": 871
+    },
+    {
+      "standard": "AS",
+      "country": "Australia",
+      "is_internal": 0,
+      "mat_count": 749
+    },
+    {
+      "standard": "AISI",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 722
+    },
+    {
+      "standard": "PN",
+      "country": "Poland",
+      "is_internal": 0,
+      "mat_count": 671
+    },
+    {
+      "standard": "STAS",
+      "country": "Romania",
+      "is_internal": 0,
+      "mat_count": 600
+    },
+    {
+      "standard": "AWS",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 519
+    },
+    {
+      "standard": "BDS",
+      "country": "Bulgaria",
+      "is_internal": 0,
+      "mat_count": 507
+    },
+    {
+      "standard": "SS",
+      "country": "Sweden",
+      "is_internal": 0,
+      "mat_count": 456
+    },
+    {
+      "standard": "JUS",
+      "country": "Yugoslavia",
+      "is_internal": 0,
+      "mat_count": 427
+    },
+    {
+      "standard": "MSZ",
+      "country": "Hungary",
+      "is_internal": 0,
+      "mat_count": 426
+    },
+    {
+      "standard": "CSN",
+      "country": "Czech Republic",
+      "is_internal": 0,
+      "mat_count": 406
+    },
+    {
+      "standard": "AMS",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 385
+    },
+    {
+      "standard": "KS",
+      "country": "Korea",
+      "is_internal": 0,
+      "mat_count": 233
+    },
+    {
+      "standard": "NBN",
+      "country": "Belgium",
+      "is_internal": 0,
+      "mat_count": 150
+    },
+    {
+      "standard": "ONORM",
+      "country": "Austria",
+      "is_internal": 0,
+      "mat_count": 149
+    },
+    {
+      "standard": "NS",
+      "country": "Norway",
+      "is_internal": 0,
+      "mat_count": 130
+    },
+    {
+      "standard": "SFS",
+      "country": "Finland",
+      "is_internal": 0,
+      "mat_count": 51
+    },
+    {
+      "standard": "CSA",
+      "country": "Canada",
+      "is_internal": 0,
+      "mat_count": 48
+    },
+    {
+      "standard": "SNV",
+      "country": "Switzerland",
+      "is_internal": 0,
+      "mat_count": 39
+    },
+    {
+      "standard": "API",
+      "country": "USA",
+      "is_internal": 0,
+      "mat_count": 38
+    },
+    {
+      "standard": "TCVN",
+      "country": "Việt Nam",
+      "is_internal": 0,
+      "mat_count": 0
+    }
+  ],
+  "steel_groups": [
+    {
+      "grp_code": 1,
+      "grp_desc": "Structural and constructional steels",
+      "grp_desc_vi": "Thép kết cấu & Xây dựng (Structural & Constructional Steels)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 2,
+      "grp_desc": "Tool steels",
+      "grp_desc_vi": "Thép dụng cụ & Khuôn mẫu (Tool Steels)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 3,
+      "grp_desc": "Stainless and heat resisting steels",
+      "grp_desc_vi": "Thép không gỉ & Bền nhiệt (Stainless & Heat Resisting Steels)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 4,
+      "grp_desc": "Stainless and heat resisiting st. & cast",
+      "grp_desc_vi": "Thép & Thép đúc không gỉ / Bền nhiệt (Stainless & Heat Resisting Castings)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 5,
+      "grp_desc": "Welding filler materials",
+      "grp_desc_vi": "Vật liệu hàn đắp (Welding Filler Materials)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 6,
+      "grp_desc": "Steel castings",
+      "grp_desc_vi": "Thép đúc (Steel Castings)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 7,
+      "grp_desc": "Stainless, heat resisting and valve steels",
+      "grp_desc_vi": "Thép không gỉ, Bền nhiệt & Thép xupáp (Valve Steels)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 8,
+      "grp_desc": "Aerospace materials",
+      "grp_desc_vi": "Vật liệu hàng không vũ trụ (Aerospace Materials)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 9,
+      "grp_desc": "Materials with special physical properties",
+      "grp_desc_vi": "Hợp kim có tính chất vật lý đặc biệt (Special Physical Properties)",
+      "mat_count": 40167
+    },
+    {
+      "grp_code": 10,
+      "grp_desc": "Iron",
+      "grp_desc_vi": "Gang đúc (Cast Iron / Iron)",
+      "mat_count": 40167
+    }
+  ],
+  "common_elements": [
+    "C",
+    "Si",
+    "Mn",
+    "P",
+    "S",
+    "Cr",
+    "Ni",
+    "Mo",
+    "Cu",
+    "V",
+    "W",
+    "Al",
+    "Ti",
+    "Nb",
+    "B",
+    "Mg",
+    "Co",
+    "N"
+  ]
+}

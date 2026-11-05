@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hệ thống Tra cứu Mác Thép & Gang Nội bộ - VICO Foundry</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #2563eb;
+      --primary-bg: #eff6ff;
+      --accent: #d97706;
+      --accent-bg: #fffbeb;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #cbd5e1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    /* Header */
+    .topbar {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #f59e0b;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(245,158,11,0.4);
+    }
+    .brand h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; }
+    .brand p { font-size: 12px; color: #93c5fd; }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.1);
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    .nav-btn.active {
+      background: #f59e0b;
+      color: #0f172a;
+      border-color: #f59e0b;
+      box-shadow: 0 2px 8px rgba(245,158,11,0.35);
+    }
+    .badge-count {
+      background: #0f172a;
+      color: #fff;
+      padding: 1px 7px;
+      border-radius: 99px;
+      font-size: 11px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1440px;
+      margin: 18px auto;
+      padding: 0 18px 40px;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Cards & Controls */
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Search Grid */
+    .search-bar {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1.3fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    @media (max-width: 900px) {
+      .search-bar { grid-template-columns: 1fr 1fr; }
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13.5px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    /* Quick Filter Pills */
+    .quick-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #e2e8f0;
+      align-items: center;
+    }
+    .pill {
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill:hover { border-color: var(--primary-light); color: var(--primary-light); }
+    .pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .pill.internal-pill {
+      border-color: #f59e0b;
+      background: #fffbeb;
+      color: #b45309;
+    }
+    .pill.internal-pill.active {
+      background: #d97706;
+      color: #fff;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 15px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--primary-light); color: #fff; }
+    .btn-primary:hover { background: var(--primary); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: #b45309; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #047857; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-outline {
+      background: #fff;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: #f8fafc; border-color: #94a3b8; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    tr:hover td { background: #f8fafc; }
+    tr.internal-row td { background: #fffbeb; }
+    tr.internal-row:hover td { background: #fef3c7; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-internal { background: #f59e0b; color: #0f172a; }
+    .badge-std { background: #dbeafe; color: #1e40af; }
+
+    /* Modal Chi tiết Mác thép */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-content {
+      background: #fff;
+      width: 100%;
+      max-width: 1120px;
+      max-height: 90vh;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    .modal-header {
+      background: #0f172a;
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 850px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+    .info-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .info-box h4 {
+      font-size: 13px;
+      color: var(--primary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .casting-highlight {
+      background: #fffbeb;
+      border-color: #fcd34d;
+    }
+    .casting-highlight h4 { color: #b45309; }
+
+    /* Spectrometer Grid */
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .spec-cell {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .spec-cell label {
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .spec-cell input {
+      margin-top: 4px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .elem-chip {
+      display: inline-block;
+      margin: 2px 4px 2px 0;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .elem-ok { background: #dcfce7; color: #166534; }
+    .elem-low { background: #ffedd5; color: #9a3412; }
+    .elem-high { background: #fee2e2; color: #991b1b; }
+    .elem-missing { background: #f1f5f9; color: #64748b; border: 1px dashed #94a3b8; }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+    }
+    @media print {
+      .topbar, .no-print { display: none !important; }
+      .container { margin: 0; max-width: 100%; }
+      .card { border: none; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">VICO</div>
+      <div>
+        <h1>TRA CỨU MÁC THÉP & GANG NỘI BỘ - CÔNG TY ĐÚC</h1>
+        <p id="db-stats-subtitle">Đang khởi tạo và giải nén cơ sở dữ liệu Key to Steel v2005.11...</p>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-btn active" onclick="switchTab('tab-search', this)">
+        🔍 Tra cứu & Quy đổi Mác
+      </button>
+      <button class="nav-btn" onclick="switchTab('tab-spectro', this)">
+        ⚡ Đối sánh Quang phổ Lò nấu
+      </button>
+      <button class="nav-btn" onclick="switchTab('tab-compare', this)">
+        ⚖️ So sánh Mác <span class="badge-count" id="compare-count">0</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('tab-internal', this)">
+        🏭 Quản lý Mác Nội bộ <span class="badge-count" id="internal-count">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- ==================== TAB 1: TRA CỨU & QUY ĐỔI ==================== -->
+    <section id="tab-search" class="tab-pane active">
+      <div class="card no-print">
+        <div class="search-bar">
+          <div class="form-group">
+            <label>Tên Mác thép / Gang / Mã nội bộ / Tiêu chuẩn nhánh</label>
+            <input type="text" id="q-input" placeholder="VD: WCB, FCD450, SCS14A, S45C, SUS304, 42CrMo4, SKD11..." onkeydown="if(event.key==='Enter') doSearch(1)" />
+          </div>
+          <div class="form-group">
+            <label>Bộ Tiêu chuẩn (Standard)</label>
+            <select id="std-select" onchange="doSearch(1)">
+              <option value="">-- Tất cả Tiêu chuẩn --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nhóm Vật liệu (Material Group)</label>
+            <select id="grp-select" onchange="doSearch(1)">
+              <option value="">-- Tất cả Nhóm vật liệu --</option>
+            </select>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-primary" onclick="doSearch(1)">🔍 Tìm kiếm</button>
+            <button class="btn btn-outline" onclick="toggleAdvFilter()">⚙️ Lọc Cơ tính</button>
+            <button class="btn btn-outline" onclick="resetSearch()">↺ Đặt lại</button>
+          </div>
+        </div>
+
+        <!-- Bộ lọc nâng cao theo Cơ tính & Nhiệt luyện -->
+        <div id="adv-filter-box" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap:10px;">
+            <div class="form-group">
+              <label>Giới hạn chảy Re tối thiểu (MPa)</label>
+              <input type="number" id="f-ymin" placeholder="VD: 250" />
+            </div>
+            <div class="form-group">
+              <label>Độ bền kéo Rm tối thiểu (MPa)</label>
+              <input type="number" id="f-tmin" placeholder="VD: 485" />
+            </div>
+            <div class="form-group">
+              <label>Độ bền kéo Rm tối đa (MPa)</label>
+              <input type="number" id="f-tmax" placeholder="VD: 800" />
+            </div>
+            <div class="form-group">
+              <label>Độ giãn dài A tối thiểu (%)</label>
+              <input type="number" id="f-emin" placeholder="VD: 15" />
+            </div>
+            <div class="form-group">
+              <label>Độ dai va đập KV tối thiểu (J)</label>
+              <input type="number" id="f-imin" placeholder="VD: 27" />
+            </div>
+            <div class="form-group">
+              <label>Độ cứng (HB / HRC / HV)</label>
+              <input type="text" id="f-hard" placeholder="VD: HB, HRC..." />
+            </div>
+            <div class="form-group">
+              <label>Từ khóa Nhiệt luyện / Đúc</label>
+              <input type="text" id="f-ht" placeholder="VD: Normalizing, Quenching..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- Nút lọc nhanh cho Xưởng Đúc -->
+        <div class="quick-pills">
+          <span style="font-size:12px; font-weight:700; color:var(--muted); margin-right:4px;">Lọc nhanh Ngành Đúc:</span>
+          <button class="pill active" onclick="quickFilter('all', this)">Tất cả</button>
+          <button class="pill internal-pill" onclick="quickFilter('internal', this)">⭐ Mác Nội Bộ Công Ty</button>
+          <button class="pill" onclick="quickFilter('grp:6', this)">🔥 Thép Đúc (Steel Castings)</button>
+          <button class="pill" onclick="quickFilter('grp:10', this)">⚙️ Gang Đúc (Cast Iron)</button>
+          <button class="pill" onclick="quickFilter('grp:4', this)">🛡️ Thép & Đúc Không Gỉ / Bền Nhiệt</button>
+          <button class="pill" onclick="quickFilter('grp:1', this)">🏗️ Thép Kết Cấu</button>
+          <button class="pill" onclick="quickFilter('grp:2', this)">🛠️ Thép Dụng Cụ & Khuôn</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span id="search-result-title">Danh sách Mác Vật Liệu</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="exportCurrentListExcel()">📥 Xuất Excel các mác đang hiển thị</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:180px;">Mác Vật Liệu</th>
+                <th style="width:120px;">Tiêu Chuẩn</th>
+                <th style="width:190px;">Nhóm / Phân Loại</th>
+                <th>Thành Phần Hóa Học Đặc Trưng (%)</th>
+                <th>Cơ Tính Điển Hình</th>
+                <th style="width:155px; text-align:right;">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="search-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span id="page-info" style="color:var(--muted); font-size:13px;"></span>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-outline btn-sm" id="btn-prev" onclick="changePage(-1)">◀ Trước</button>
+            <button class="btn btn-outline btn-sm" id="btn-next" onclick="changePage(1)">Sau ▶</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: ĐỐI SÁNH QUANG PHỔ LÒ NẤU ==================== -->
+    <section id="tab-spectro" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span>⚡ Nhập Kết Quả Phân Tích Quang Phổ Mẫu Thử Tại Lò (Spectrometer Chemical Matcher)</span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <span style="font-size:12px; color:var(--muted); align-self:center;">Nạp mẫu thử nhanh:</span>
+            <button class="btn btn-outline btn-sm" onclick="loadSpectroPreset('wcb')">Mẫu Thép đúc WCB</button>
+            <button class="btn btn-outline btn-sm" onclick="loadSpectroPreset('fcd450')">Mẫu Gang cầu FCD450</button>
+            <button class="btn btn-outline btn-sm" onclick="loadSpectroPreset('cf8m')">Mẫu Inox đúc CF8M (316)</button>
+            <button class="btn btn-outline btn-sm" onclick="loadSpectroPreset('crmo')">Mẫu Thép Cr-Mo (42CrMo4)</button>
+            <button class="btn btn-outline btn-sm" onclick="clearSpectroInputs()">🗑️ Xóa trắng</button>
+          </div>
+        </div>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">
+          Nhập % khối lượng các nguyên tố vừa bắn quang phổ. Hệ thống sẽ quét toàn bộ 40.167 mác quốc tế & nội bộ để tìm mác phù hợp nhất và cảnh báo nguyên tố dư/thiếu để điều chỉnh mẻ nấu.
+        </p>
+
+        <div class="spec-grid" id="spectro-inputs-grid"></div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:end; padding-top:10px; border-top:1px solid #e2e8f0;">
+          <div class="form-group" style="width:180px;">
+            <label>Biên độ dung sai mở rộng (%)</label>
+            <input type="number" id="spec-tol" value="15" min="1" max="50" />
+          </div>
+          <div class="form-group" style="width:200px;">
+            <label>Giới hạn theo Tiêu chuẩn</label>
+            <select id="spec-std">
+              <option value="">-- Mọi Tiêu chuẩn --</option>
+            </select>
+          </div>
+          <div class="form-group" style="width:240px;">
+            <label>Giới hạn theo Nhóm vật liệu</label>
+            <select id="spec-grp">
+              <option value="">-- Mọi Nhóm vật liệu --</option>
+            </select>
+          </div>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer; margin-bottom:8px;">
+            <input type="checkbox" id="spec-only-internal" /> Chỉ đối sánh Mác Nội bộ Công ty
+          </label>
+          <button class="btn btn-accent" onclick="runSpectroMatch()">⚡ Phân tích & Tìm Mác Phù Hợp</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span id="spectro-result-title">Kết quả Đối sánh Quang phổ</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:110px;">Độ Khớp (%)</th>
+                <th style="width:180px;">Mác Vật Liệu</th>
+                <th style="width:120px;">Tiêu Chuẩn</th>
+                <th>Đánh Giá Từng Nguyên Tố (So với Dải Tiêu Chuẩn & Nội Bộ)</th>
+                <th style="width:140px; text-align:right;">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="spectro-tbody">
+              <tr><td colspan="5" style="text-align:center; color:var(--muted); padding:24px;">Hãy nhập kết quả bắn quang phổ hoặc chọn 1 nút "Nạp mẫu thử nhanh" phía trên rồi nhấn Phân tích.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: SO SÁNH MÁC THÉP ==================== -->
+    <section id="tab-compare" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span>⚖️ Bảng So Sánh Đối Chiếu Trực Quan Các Mác Vật Liệu</span>
+          <div class="no-print" style="display:flex; gap:8px;">
+            <button class="btn btn-success btn-sm" onclick="exportCompareExcel()">📥 Xuất Bảng So Sánh ra Excel</button>
+            <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ In Phiếu Kỹ Thuật / Xuất PDF</button>
+            <button class="btn btn-outline btn-sm" onclick="clearCompare()">🗑️ Xóa danh sách so sánh</button>
+          </div>
+        </div>
+        <div id="compare-container">
+          <p style="color:var(--muted); padding:20px; text-align:center;">
+            Chưa có mác vật liệu nào trong danh sách so sánh. Hãy bấm nút <b>[+ So sánh]</b> ở danh sách tra cứu hoặc cửa sổ chi tiết mác thép.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: QUẢN LÝ MÁC NỘI BỘ CÔNG TY ĐÚC ==================== -->
+    <section id="tab-internal" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span>🏭 Danh Mục Mác Thép & Gang Nội Bộ Của Công Ty Đúc</span>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-accent btn-sm" onclick="openInternalForm()">➕ Thêm Mác Nội Bộ Mới</button>
+            <button class="btn btn-success btn-sm" onclick="exportInternalExcel()">📥 Xuất Danh Mục Nội Bộ ra Excel</button>
+            <button class="btn btn-outline btn-sm" onclick="exportInternalJsonBackup()">💾 Tải File Sao Lưu (.json)</button>
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+              📂 Nhập File Sao Lưu (.json)
+              <input type="file" accept=".json" style="display:none;" onchange="importInternalJsonBackup(event)" />
+            </label>
+          </div>
+        </div>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">
+          Bạn có thể tự tạo mới hoàn toàn hoặc mở bất kỳ mác thép quốc tế nào trong 40.163 mác của Key to Steel và bấm <b>"Sao chép thành Mác Nội Bộ"</b> để thiết lập dải kiểm soát nấu luyện riêng của công ty.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên Mác Nội Bộ</th>
+                <th>Mã Quản Lý</th>
+                <th>Nhóm Vật Liệu</th>
+                <th>Thành Phần Hóa Học</th>
+                <th>Cơ Tính Yêu Cầu</th>
+                <th>Ghi Chú Công Nghệ Đúc</th>
+                <th style="width:170px; text-align:right;">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="internal-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Form Thêm / Sửa Mác Nội Bộ -->
+      <div class="card" id="internal-form-card" style="display:none; border:2px solid var(--accent);">
+        <div class="card-title">
+          <span id="internal-form-title">➕ Thêm Mác Vật Liệu Nội Bộ Mới</span>
+          <button class="btn btn-outline btn-sm" onclick="closeInternalForm()">✖ Đóng Form</button>
+        </div>
+        <input type="hidden" id="edit-vk-key" value="" />
+        <input type="hidden" id="edit-crt-num" value="" />
+        <input type="hidden" id="edit-equiv-vk" value="" />
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label>Tên Mác Nội Bộ (*)</label>
+            <input type="text" id="in-material" placeholder="VD: VICO-WCB, GX-CrMo1..." />
+          </div>
+          <div class="form-group">
+            <label>Mã Quản Lý Nội Bộ (ERP / Bản vẽ)</label>
+            <input type="text" id="in-code" placeholder="VD: TC-DUC-005" />
+          </div>
+          <div class="form-group">
+            <label>Bộ Tiêu Chuẩn</label>
+            <input type="text" id="in-std" value="NOI_BO" />
+          </div>
+          <div class="form-group">
+            <label>Nhóm Vật Liệu</label>
+            <select id="in-grp"></select>
+          </div>
+          <div class="form-group">
+            <label>Tiêu chuẩn / Phân nhóm nhánh</label>
+            <input type="text" id="in-subgroup" placeholder="VD: Tiêu chuẩn Đúc Van Chịu Áp" />
+          </div>
+          <div class="form-group">
+            <label>Dạng Phôi / Khuôn Đúc</label>
+            <input type="text" id="in-form" placeholder="VD: Đúc khuôn cát nhựa Furan / Mẫu chảy" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div class="form-group">
+            <label>Mô tả & Công dụng chi tiết</label>
+            <textarea id="in-app" rows="2" placeholder="Ứng dụng của chi tiết đúc..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Ghi chú Công nghệ Nấu luyện & Đúc (Nhiệt độ rót, Biến tính, Cầu hóa...)</label>
+            <textarea id="in-casting" rows="2" placeholder="VD: Nhiệt độ rót 1550-1580°C, khử oxy bằng Al..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>Quy trình Nhiệt luyện Nội bộ (Ủ, Thường hóa, Tôi, Ram...)</label>
+          <textarea id="in-ht" rows="2" placeholder="VD: Thường hóa 920°C giữ nhiệt 2h, làm nguội khí tĩnh..."></textarea>
+        </div>
+
+        <!-- Bảng nhập Thành phần Hóa học Nội bộ -->
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-weight:700; color:var(--primary);">1. Bảng Thành Phần Hóa Học (% Khối lượng) - Có hỗ trợ Dải Kiểm Soát Mẻ Nấu Nội Bộ</label>
+            <button class="btn btn-outline btn-sm" onclick="addChemRow()">+ Thêm Nguyên Tố</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:110px;">Nguyên Tố</th>
+                <th>Min Chuẩn (%)</th>
+                <th>Max Chuẩn (%)</th>
+                <th style="background:#fffbeb; color:#b45309;">Min Nội Bộ Lò Nấu (%)</th>
+                <th style="background:#fffbeb; color:#b45309;">Max Nội Bộ Lò Nấu (%)</th>
+                <th>Ghi Chú Kiểm Soát</th>
+                <th style="width:50px;">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="in-chem-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Bảng nhập Cơ tính -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-weight:700; color:var(--primary);">2. Bảng Yêu Cầu Cơ Tính</label>
+            <button class="btn btn-outline btn-sm" onclick="addMechRow()">+ Thêm Dòng Cơ Tính</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Quy Cách Mẫu / Trạng Thái</th>
+                <th style="width:110px;">Re Min (MPa)</th>
+                <th style="width:110px;">Rm Min (MPa)</th>
+                <th style="width:110px;">Rm Max (MPa)</th>
+                <th style="width:100px;">A Min (%)</th>
+                <th style="width:100px;">KV Min (J)</th>
+                <th style="width:140px;">Độ Cứng (HB/HRC)</th>
+                <th style="width:50px;">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="in-mech-tbody"></tbody>
+          </table>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button class="btn btn-outline" onclick="closeInternalForm()">Hủy bỏ</button>
+          <button class="btn btn-primary" onclick="saveInternalMaterial()">💾 Lưu Mác Nội Bộ Công Ty</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL CHI TIẾT MÁC VẬT LIỆU ==================== -->
+  <div class="modal-backdrop" id="detail-modal" onclick="if(event.target===this) closeDetailModal()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 id="m-title" style="font-size:18px;"></h2>
+          <p id="m-subtitle" style="font-size:12px; color:#93c5fd;"></p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-accent btn-sm" id="btn-clone-internal">📋 Sao chép thành Mác Nội Bộ Công Ty</button>
+          <button class="btn btn-primary btn-sm" id="btn-modal-compare">+ Đưa vào So sánh</button>
+          <button class="btn btn-success btn-sm" id="btn-modal-excel">📥 Xuất Phiếu Excel</button>
+          <button class="btn btn-outline btn-sm" style="background:transparent; color:#fff; border-color:#475569;" onclick="closeDetailModal()">✖ Đóng</button>
+        </div>
+      </div>
+      <div class="modal-body" id="m-body"></div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * HỆ THỐNG CHẠY CHẾ ĐỘ KÉP (HYBRID DUAL-MODE):
+     * 1. Nếu có Backend FastAPI (/api/meta phản hồi 200 OK): Truy vấn trực tiếp SQLite.
+     * 2. Nếu chạy trên GitHub Pages (Static Web Hosting): Tự động giải nén bộ dữ liệu tĩnh
+     *    trong thư mục data/*.json.gz (~2.5 MB cho toàn bộ 40.167 mác thép) ngay trên trình duyệt!
+     */
+    let BACKEND_MODE = false;
+    let META = { standards: [], steel_groups: [], common_elements: [] };
+    let SDB = {
+      loaded: false,
+      materials: [],       // Mảng object mác thép
+      matByVk: new Map(),  // vk_key -> object
+      chem: {},            // str(vk_key) -> [[el, cmin, cmax, capr, imin, imax, ctxt], ...]
+      mech: {},            // str(vk_key) -> [[dimen, ymin, ymax, tmin, tmax, emin, imin, hard], ...]
+      vkToCrt: {},         // str(vk_key) -> [crt_num, ...]
+      crtToVk: {},         // str(crt_num) -> [vk_key, ...]
+      desc: {},            // str(vk_key) -> [sdesc, comm, appl, form, ht, cast]
+      grpMap: {},
+      stdCountryMap: {}
+    };
+
+    let currentPage = 1;
+    let currentSearchItems = [];
+    let compareList = [];
+    let currentDetailData = null;
+
+    function normalizeCode(str) {
+      return String(str || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+
+    async function fetchGzipJson(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Cannot load ${url}`);
+      const buf = await res.arrayBuffer();
+      const u8 = new Uint8Array(buf);
+      // Kiểm tra magic bytes GZIP (0x1f 0x8b)
+      if (u8.length >= 2 && u8[0] === 0x1f && u8[1] === 0x8b) {
+        const ds = new DecompressionStream('gzip');
+        const decompressedStream = new Blob([buf]).stream().pipeThrough(ds);
+        return await new Response(decompressedStream).json();
+      } else {
+        return JSON.parse(new TextDecoder('utf-8').decode(u8));
+      }
+    }
+
+    async function initStaticDB() {
+      document.getElementById('db-stats-subtitle').textContent =
+        'Đang tải & giải nén 40.167 mác thép trên trình duyệt (Chế độ GitHub Pages)...';
+
+      const [metaRes, rawMats, chem, mech, crt, desc] = await Promise.all([
+        fetch('data/meta.json').then(r => r.json()),
+        fetchGzipJson('data/materials.json.gz'),
+        fetchGzipJson('data/chem.json.gz'),
+        fetchGzipJson('data/mech.json.gz'),
+        fetchGzipJson('data/crt.json.gz'),
+        fetchGzipJson('data/desc.json.gz')
+      ]);
+
+      META = metaRes;
+      META.steel_groups.forEach(g => { SDB.grpMap[g.grp_code] = g.grp_desc_vi; });
+      META.standards.forEach(s => { SDB.stdCountryMap[s.standard] = s.country; });
+
+      SDB.chem = chem;
+      SDB.mech = mech;
+      SDB.vkToCrt = crt.vk_to_crt || {};
+      SDB.crtToVk = crt.crt_to_vk || {};
+      SDB.desc = desc;
+
+      // Chuyển mảng nén thành object
+      SDB.materials = rawMats.map(r => {
+        const obj = {
+          vk_key: r[0],
+          material: r[1],
+          material_norm: r[2],
+          standard: r[3],
+          country: SDB.stdCountryMap[r[3]] || '',
+          grp_code: r[4],
+          grp_desc_vi: SDB.grpMap[r[4]] || '',
+          subgroup: r[5],
+          chem_preview: r[6],
+          mech_preview: r[7],
+          is_internal: r[8],
+          internal_code: r[9] || '',
+          casting_notes: (desc[String(r[0])] && desc[String(r[0])][5]) || ''
+        };
+        SDB.matByVk.set(obj.vk_key, obj);
+        return obj;
+      });
+
+      // Nạp thêm hoặc ghi đè các Mác Nội Bộ tùy chỉnh từ localStorage
+      loadCustomInternalFromStorage();
+      SDB.loaded = true;
+    }
+
+    function loadCustomInternalFromStorage() {
+      try {
+        const raw = localStorage.getItem('vico_custom_internal_v1');
+        if (!raw) return;
+        const customData = JSON.parse(raw);
+        // Xóa các mác bị người dùng xóa
+        if (Array.isArray(customData.deletedVks)) {
+          const delSet = new Set(customData.deletedVks);
+          SDB.materials = SDB.materials.filter(m => !delSet.has(m.vk_key));
+          delSet.forEach(vk => SDB.matByVk.delete(vk));
+        }
+        // Cập nhật hoặc thêm các mác nội bộ mới
+        if (Array.isArray(customData.items)) {
+          customData.items.forEach(item => {
+            applyCustomInternalItemToMemory(item);
+          });
+        }
+        recalcInternalCount();
+      } catch (e) {
+        console.error('Lỗi đọc localStorage:', e);
+      }
+    }
+
+    function saveCustomInternalToStorage(newItem, deletedVk = null) {
+      let store = { items: [], deletedVks: [] };
+      try {
+        const raw = localStorage.getItem('vico_custom_internal_v1');
+        if (raw) store = JSON.parse(raw);
+      } catch (e) {}
+
+      if (deletedVk !== null) {
+        if (!store.deletedVks.includes(deletedVk)) store.deletedVks.push(deletedVk);
+        store.items = store.items.filter(x => x.vk_key !== deletedVk);
+      }
+      if (newItem) {
+        store.items = store.items.filter(x => x.vk_key !== newItem.vk_key);
+        store.items.push(newItem);
+      }
+      localStorage.setItem('vico_custom_internal_v1', JSON.stringify(store));
+    }
+
+    function applyCustomInternalItemToMemory(item) {
+      const vk = item.vk_key;
+      const vkStr = String(vk);
+      const cParts = (item.chem || []).slice(0, 6).map(c => {
+        if (c.c_min !== null && c.c_max !== null) return `${c.element}: ${c.c_min}-${c.c_max}`;
+        if (c.c_max !== null) return `${c.element}: ≤${c.c_max}`;
+        if (c.c_min !== null) return `${c.element}: ≥${c.c_min}`;
+        return '';
+      }).filter(Boolean);
+
+      const mParts = [];
+      if (item.mech && item.mech.length) {
+        const m0 = item.mech[0];
+        if (m0.y_min) mParts.push(`Re: ≥${m0.y_min} MPa`);
+        if (m0.t_min) mParts.push(`Rm: ≥${m0.t_min} MPa`);
+        if (m0.hardness) mParts.push(`Độ cứng: ${m0.hardness}`);
+      }
+
+      const matObj = {
+        vk_key: vk,
+        material: item.material,
+        material_norm: normalizeCode(item.material),
+        standard: item.standard || 'NOI_BO',
+        country: 'Việt Nam (Nội bộ Công ty)',
+        grp_code: item.grp_code || 6,
+        grp_desc_vi: SDB.grpMap[item.grp_code || 6] || '',
+        subgroup: item.subgroup || '',
+        chem_preview: cParts.join(' | '),
+        mech_preview: mParts.join(' | '),
+        is_internal: 1,
+        internal_code: item.internal_code || '',
+        casting_notes: item.casting_notes || ''
+      };
+
+      const existingIdx = SDB.materials.findIndex(m => m.vk_key === vk);
+      if (existingIdx >= 0) {
+        SDB.materials[existingIdx] = matObj;
+      } else {
+        SDB.materials.unshift(matObj);
+      }
+      SDB.matByVk.set(vk, matObj);
+
+      SDB.chem[vkStr] = (item.chem || []).map(c => [
+        c.element, c.c_min, c.c_max, null, c.internal_min, c.internal_max, c.c_text || ''
+      ]);
+      SDB.mech[vkStr] = (item.mech || []).map(m => [
+        m.dimen || '', m.y_min, null, m.t_min, m.t_max, m.e_min, m.i_min, m.hardness || ''
+      ]);
+      SDB.desc[vkStr] = [
+        item.subgroup || '', '', item.application || '', item.product_form || '', item.heat_treatment || '', item.casting_notes || ''
+      ];
+
+      // Liên kết CRT_NUM
+      let crts = [];
+      if (item.crt_num) crts.push(item.crt_num);
+      if (item.equivalent_vk_key && SDB.vkToCrt[String(item.equivalent_vk_key)]) {
+        crts = crts.concat(SDB.vkToCrt[String(item.equivalent_vk_key)]);
+      }
+      crts = [...new Set(crts)];
+      if (crts.length) {
+        SDB.vkToCrt[vkStr] = crts;
+        crts.forEach(cNum => {
+          const arr = SDB.crtToVk[String(cNum)] || [];
+          if (!arr.includes(vk)) arr.push(vk);
+          SDB.crtToVk[String(cNum)] = arr;
+        });
+      }
+    }
+
+    function recalcInternalCount() {
+      const cnt = SDB.materials.filter(m => m.is_internal === 1).length;
+      META.internal_materials = cnt;
+      META.total_materials = SDB.materials.length;
+      document.getElementById('internal-count').textContent = cnt;
+      document.getElementById('db-stats-subtitle').textContent =
+        `Cơ sở dữ liệu: ${META.total_materials.toLocaleString('vi-VN')} mác vật liệu (${META.standards.length} tiêu chuẩn quốc tế & ${cnt} mác nội bộ công ty đúc)`;
+    }
+
+    async function initApp() {
+      // Kiểm tra xem có сервер Python FastAPI hay đang chạy tĩnh trên GitHub Pages
+      try {
+        const res = await fetch('/api/meta');
+        if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+          META = await res.json();
+          BACKEND_MODE = true;
+        } else {
+          await initStaticDB();
+        }
+      } catch (e) {
+        await initStaticDB();
+      }
+
+      document.getElementById('db-stats-subtitle').textContent =
+        `Cơ sở dữ liệu: ${META.total_materials.toLocaleString('vi-VN')} mác vật liệu (${META.standards.length} tiêu chuẩn quốc tế & ${META.internal_materials} mác nội bộ công ty đúc)`;
+      document.getElementById('internal-count').textContent = META.internal_materials;
+
+      const stdSelects = [document.getElementById('std-select'), document.getElementById('spec-std')];
+      stdSelects.forEach(sel => {
+        const firstOpt = sel.options[0].outerHTML;
+        sel.innerHTML = firstOpt + META.standards.map(s =>
+          `<option value="${s.standard}">${s.is_internal ? '⭐ ' : ''}${s.standard} - ${s.country} (${s.mat_count})</option>`
+        ).join('');
+      });
+
+      const grpSelects = [document.getElementById('grp-select'), document.getElementById('spec-grp'), document.getElementById('in-grp')];
+      grpSelects.forEach(sel => {
+        const hasDefault = sel.options.length > 0;
+        const firstOpt = hasDefault ? sel.options[0].outerHTML : '';
+        sel.innerHTML = firstOpt + META.steel_groups.map(g =>
+          `<option value="${g.grp_code}">[${g.grp_code}] ${g.grp_desc_vi} (${g.mat_count})</option>`
+        ).join('');
+      });
+
+      const specGrid = document.getElementById('spectro-inputs-grid');
+      specGrid.innerHTML = META.common_elements.map(el => `
+        <div class="spec-cell">
+          <label><span>% ${el}</span></label>
+          <input type="number" step="0.001" min="0" max="100" id="sp-el-${el}" placeholder="0.00" />
+        </div>
+      `).join('');
+
+      await doSearch(1);
+    }
+
+    function switchTab(tabId, btnEl) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+
+      if (tabId === 'tab-compare') renderCompareTab();
+      if (tabId === 'tab-internal') loadInternalList();
+    }
+
+    function toggleAdvFilter() {
+      const box = document.getElementById('adv-filter-box');
+      box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
+    let onlyInternalFilter = false;
+    function quickFilter(mode, pillEl) {
+      document.querySelectorAll('.quick-pills .pill').forEach(p => p.classList.remove('active'));
+      if (pillEl) pillEl.classList.add('active');
+
+      onlyInternalFilter = false;
+      document.getElementById('grp-select').value = '';
+      if (mode === 'internal') {
+        onlyInternalFilter = true;
+      } else if (mode.startsWith('grp:')) {
+        document.getElementById('grp-select').value = mode.split(':')[1];
+      }
+      doSearch(1);
+    }
+
+    function resetSearch() {
+      document.getElementById('q-input').value = '';
+      document.getElementById('std-select').value = '';
+      document.getElementById('grp-select').value = '';
+      ['f-ymin','f-tmin','f-tmax','f-emin','f-imin','f-hard','f-ht'].forEach(id => document.getElementById(id).value = '');
+      onlyInternalFilter = false;
+      document.querySelectorAll('.quick-pills .pill').forEach((p, idx) => p.classList.toggle('active', idx === 0));
+      doSearch(1);
+    }
+
+    // ==================== TÌM KIẾM MÁC VẬT LIỆU ====================
+    function searchStaticMaterials(filters, page, pageSize) {
+      const qClean = (filters.q || '').trim().toUpperCase();
+      const qNorm = normalizeCode(qClean);
+      const std = filters.standard || '';
+      const grp = filters.grp_code ? parseInt(filters.grp_code) : null;
+      const onlyInt = !!filters.only_internal;
+      const ymin = filters.y_min ? parseFloat(filters.y_min) : null;
+      const tmin = filters.t_min ? parseFloat(filters.t_min) : null;
+      const tmax = filters.t_max ? parseFloat(filters.t_max) : null;
+      const emin = filters.e_min ? parseFloat(filters.e_min) : null;
+      const imin = filters.i_min ? parseFloat(filters.i_min) : null;
+      const hardQ = (filters.hardness_q || '').trim().toUpperCase();
+      const htQ = (filters.ht_q || '').trim().toUpperCase();
+      const hasMechFilter = ymin !== null || tmin !== null || tmax !== null || emin !== null || imin !== null || hardQ !== '';
+
+      let matched = SDB.materials.filter(m => {
+        if (onlyInt && m.is_internal !== 1) return false;
+        if (std && m.standard !== std) return false;
+        if (grp !== null && m.grp_code !== grp) return false;
+        if (qClean) {
+          const hit = m.material_norm.includes(qNorm) ||
+                      m.material.toUpperCase().includes(qClean) ||
+                      (m.internal_code && m.internal_code.toUpperCase().includes(qClean)) ||
+                      (m.subgroup && m.subgroup.toUpperCase().includes(qClean));
+          if (!hit) return false;
+        }
+        if (htQ) {
+          const dArr = SDB.desc[String(m.vk_key)] || [];
+          const combined = dArr.join(' ').toUpperCase();
+          if (!combined.includes(htQ)) return false;
+        }
+        if (hasMechFilter) {
+          const mRows = SDB.mech[String(m.vk_key)] || [];
+          const okMech = mRows.some(r => {
+            // [dimen, y_min, y_max, t_min, t_max, e_min, i_min, hardness]
+            const rY = r[1] ?? r[2];
+            const rTmin = r[3] ?? r[4];
+            const rTmax = r[4] ?? r[3];
+            const rE = r[5];
+            const rI = r[6];
+            const rH = (r[7] || '').toUpperCase();
+            if (ymin !== null && (rY === null || rY < ymin)) return false;
+            if (tmin !== null && (rTmax === null || rTmax < tmin)) return false;
+            if (tmax !== null && (rTmin === null || rTmin > tmax)) return false;
+            if (emin !== null && (rE === null || rE < emin)) return false;
+            if (imin !== null && (rI === null || rI < imin)) return false;
+            if (hardQ && !rH.includes(hardQ)) return false;
+            return true;
+          });
+          if (!okMech) return false;
+        }
+        return true;
+      });
+
+      if (qNorm) {
+        matched.sort((a, b) => {
+          const rank = x => {
+            if (x.material_norm === qNorm) return 0;
+            if (x.internal_code && x.internal_code.toUpperCase() === qClean) return 1;
+            if (x.is_internal === 1 && x.material_norm.startsWith(qNorm)) return 2;
+            if (x.material_norm.startsWith(qNorm)) return 3;
+            if (x.is_internal === 1) return 4;
+            return 5;
+          };
+          const ra = rank(a), rb = rank(b);
+          if (ra !== rb) return ra - rb;
+          return a.material.length - b.material.length;
+        });
+      }
+
+      const total = matched.length;
+      const start = (page - 1) * pageSize;
+      return { total, page, page_size: pageSize, items: matched.slice(start, start + pageSize) };
+    }
+
+    async function doSearch(page = 1) {
+      currentPage = page;
+      const filters = {
+        q: document.getElementById('q-input').value,
+        standard: document.getElementById('std-select').value,
+        grp_code: document.getElementById('grp-select').value,
+        only_internal: onlyInternalFilter ? 'true' : '',
+        y_min: document.getElementById('f-ymin').value.trim(),
+        t_min: document.getElementById('f-tmin').value.trim(),
+        t_max: document.getElementById('f-tmax').value.trim(),
+        e_min: document.getElementById('f-emin').value.trim(),
+        i_min: document.getElementById('f-imin').value.trim(),
+        hardness_q: document.getElementById('f-hard').value.trim(),
+        ht_q: document.getElementById('f-ht').value.trim()
+      };
+
+      let data;
+      if (BACKEND_MODE) {
+        const params = new URLSearchParams({ page: currentPage, page_size: 25 });
+        for (const [k, v] of Object.entries(filters)) {
+          if (v !== '') params.set(k, v);
+        }
+        const res = await fetch(`/api/materials?${params.toString()}`);
+        data = await res.json();
+      } else {
+        data = searchStaticMaterials(filters, currentPage, 25);
+      }
+
+      currentSearchItems = data.items || [];
+      document.getElementById('search-result-title').textContent =
+        `Kết quả tra cứu: ${data.total.toLocaleString('vi-VN')} mác vật liệu phù hợp`;
+
+      const tbody = document.getElementById('search-tbody');
+      if (!currentSearchItems.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--muted);">Không tìm thấy mác vật liệu nào khớp điều kiện lọc.</td></tr>`;
+      } else {
+        tbody.innerHTML = currentSearchItems.map(item => `
+          <tr class="${item.is_internal ? 'internal-row' : ''}">
+            <td>
+              <div style="font-weight:700; font-size:14px; color:var(--primary); cursor:pointer;" onclick="openDetailModal(${item.vk_key})">
+                ${escapeHtml(item.material)}
+              </div>
+              ${item.internal_code ? `<div style="font-size:11.5px; color:#b45309; font-weight:600;">Mã NB: ${escapeHtml(item.internal_code)}</div>` : ''}
+            </td>
+            <td>
+              ${item.is_internal ? `<span class="badge badge-internal">⭐ NỘI BỘ</span>` : `<span class="badge badge-std">${escapeHtml(item.standard)}</span>`}
+              <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">${escapeHtml(item.country || '')}</div>
+            </td>
+            <td>
+              <div style="font-weight:600; font-size:12px;">${escapeHtml(item.grp_desc_vi || 'Chưa phân nhóm')}</div>
+              <div style="font-size:11.5px; color:var(--muted);">${escapeHtml(item.subgroup || '')}</div>
+            </td>
+            <td style="font-family:monospace; font-size:12.5px; color:#1e293b;">
+              ${escapeHtml(item.chem_preview || 'Xem chi tiết')}
+            </td>
+            <td style="font-size:12.5px;">
+              ${escapeHtml(item.mech_preview || '—')}
+            </td>
+            <td style="text-align:right; white-space:nowrap;">
+              <button class="btn btn-primary btn-sm" onclick="openDetailModal(${item.vk_key})">Chi tiết</button>
+              <button class="btn btn-outline btn-sm" onclick="toggleCompare(${item.vk_key})">
+                ${compareList.includes(item.vk_key) ? '✓ Đã chọn' : '+ So sánh'}
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      const totalPages = Math.max(1, Math.ceil(data.total / data.page_size));
+      document.getElementById('page-info').textContent = `Trang ${data.page} / ${totalPages} (Tổng ${data.total.toLocaleString('vi-VN')} mác)`;
+      document.getElementById('btn-prev').disabled = data.page <= 1;
+      document.getElementById('btn-next').disabled = data.page >= totalPages;
+    }
+
+    function changePage(delta) {
+      doSearch(currentPage + delta);
+    }
+
+    // ==================== CHI TIẾT MÁC VẬT LIỆU ====================
+    function getStaticMaterialDetail(vkKey) {
+      const m = SDB.matByVk.get(Number(vkKey));
+      if (!m) return null;
+      const vkStr = String(vkKey);
+      const dArr = SDB.desc[vkStr] || ['', '', '', '', '', ''];
+      // [sdesc, comm, appl, form, ht, cast]
+      const chem = (SDB.chem[vkStr] || []).map(c => ({
+        element: c[0], c_min: c[1], c_max: c[2], c_approx: c[3],
+        internal_min: c[4], internal_max: c[5], c_text: c[6], subgroup: m.subgroup
+      }));
+      const mech = (SDB.mech[vkStr] || []).map(r => ({
+        dimen: r[0], y_min: r[1], y_max: r[2], t_min: r[3], t_max: r[4],
+        e_min: r[5], i_min: r[6], hardness: r[7], subgroup: m.subgroup
+      }));
+      const crtNums = SDB.vkToCrt[vkStr] || [];
+      const eqVkSet = new Set();
+      crtNums.forEach(cNum => {
+        (SDB.crtToVk[String(cNum)] || []).forEach(v => {
+          if (Number(v) !== Number(vkKey)) eqVkSet.add(Number(v));
+        });
+      });
+      const equivalents = [...eqVkSet].map(v => SDB.matByVk.get(v)).filter(Boolean);
+      equivalents.sort((a, b) => (b.is_internal - a.is_internal) || a.standard.localeCompare(b.standard));
+
+      return {
+        ...m,
+        subgroup_desc: dArr[0],
+        comment: dArr[1],
+        application: dArr[2],
+        product_form: dArr[3],
+        heat_treatment: dArr[4],
+        casting_notes: dArr[5] || m.casting_notes || '',
+        chem,
+        mech,
+        crt_nums: crtNums,
+        equivalents
+      };
+    }
+
+    async function fetchMaterialDetail(vkKey) {
+      if (BACKEND_MODE) {
+        const res = await fetch(`/api/materials/${vkKey}`);
+        if (!res.ok) return null;
+        return await res.json();
+      }
+      return getStaticMaterialDetail(vkKey);
+    }
+
+    async function openDetailModal(vkKey) {
+      const d = await fetchMaterialDetail(vkKey);
+      if (!d) return alert('Không tìm thấy chi tiết mác vật liệu');
+      currentDetailData = d;
+
+      document.getElementById('m-title').innerHTML =
+        `${escapeHtml(d.material)} ${d.is_internal ? '<span class="badge badge-internal" style="margin-left:8px;">MÁC NỘI BỘ CÔNG TY</span>' : `<span class="badge badge-std" style="margin-left:8px;">${escapeHtml(d.standard)}</span>`}`;
+      document.getElementById('m-subtitle').textContent =
+        `Mã VK_KEY: ${d.vk_key} | Quốc gia: ${d.country || 'N/A'} | Nhóm: ${d.grp_desc_vi || 'N/A'} | Tiêu chuẩn nhánh: ${d.subgroup || 'N/A'}`;
+
+      document.getElementById('btn-clone-internal').onclick = () => cloneToInternal(d);
+      document.getElementById('btn-modal-compare').onclick = () => toggleCompare(d.vk_key);
+      document.getElementById('btn-modal-excel').onclick = () => exportMaterialsToExcel([d.vk_key]);
+
+      const hasInternalRange = d.chem.some(c => c.internal_min !== null && c.internal_min !== undefined || c.internal_max !== null && c.internal_max !== undefined);
+      const chemRowsHtml = d.chem.length ? d.chem.map(c => `
+        <tr>
+          <td style="font-weight:700; color:var(--primary);">${escapeHtml(c.element)}</td>
+          <td>${c.c_min !== null && c.c_min !== undefined ? c.c_min : '—'}</td>
+          <td>${c.c_max !== null && c.c_max !== undefined ? c.c_max : '—'}</td>
+          <td>${c.c_approx !== null && c.c_approx !== undefined ? c.c_approx : '—'}</td>
+          ${hasInternalRange ? `<td style="background:#fffbeb; font-weight:700; color:#b45309;">${c.internal_min ?? '—'} - ${c.internal_max ?? 'Max'}</td>` : ''}
+          <td style="font-size:12px; color:var(--muted);">${escapeHtml(c.subgroup || '')} ${escapeHtml(c.c_text || '')}</td>
+        </tr>
+      `).join('') : `<tr><td colspan="6" style="color:var(--muted);">Không có dữ liệu thành phần hóa học</td></tr>`;
+
+      const mechRowsHtml = d.mech.length ? d.mech.map(m => `
+        <tr>
+          <td><b>${escapeHtml(m.dimen || 'Tiêu chuẩn')}</b><div style="font-size:11px; color:var(--muted);">${escapeHtml(m.subgroup || '')}</div></td>
+          <td>${formatRange(m.y_min, m.y_max, m.y_approx)} ${escapeHtml(m.y_txt || '')}</td>
+          <td>${formatRange(m.t_min, m.t_max, m.t_approx)}</td>
+          <td>${formatRange(m.e_min, m.e_max, m.e_approx)} ${escapeHtml(m.e_txt || '')}</td>
+          <td>${formatRange(m.i_min, m.i_max, m.i_approx)} ${escapeHtml(m.i_txt || '')}</td>
+          <td style="font-weight:700;">${escapeHtml(m.hardness || '—')}</td>
+        </tr>
+      `).join('') : `<tr><td colspan="6" style="color:var(--muted);">Không có dữ liệu cơ tính nhiệt độ thường</td></tr>`;
+
+      const eqRowsHtml = d.equivalents.length ? d.equivalents.map(e => `
+        <tr class="${e.is_internal ? 'internal-row' : ''}">
+          <td>
+            <a href="javascript:void(0)" onclick="openDetailModal(${e.vk_key})" style="font-weight:700; color:var(--primary-light); text-decoration:none;">
+              ${escapeHtml(e.material)}
+            </a>
+          </td>
+          <td>${e.is_internal ? '<span class="badge badge-internal">NỘI BỘ</span>' : `<span class="badge badge-std">${escapeHtml(e.standard)}</span>`}</td>
+          <td>${escapeHtml(e.country || '')}</td>
+          <td>${escapeHtml(e.subgroup || '')}</td>
+          <td style="font-family:monospace; font-size:12px;">${escapeHtml(e.chem_preview || '')}</td>
+          <td style="text-align:right;">
+            <button class="btn btn-outline btn-sm" onclick="toggleCompare(${e.vk_key})">+ So sánh</button>
+          </td>
+        </tr>
+      `).join('') : `<tr><td colspan="6" style="color:var(--muted);">Chưa có mác quy đổi tương đương trong nhóm CRT</td></tr>`;
+
+      document.getElementById('m-body').innerHTML = `
+        <div class="detail-grid">
+          <div class="info-box">
+            <h4>📌 Thông tin Chung & Ứng dụng</h4>
+            <p><b>Tiêu chuẩn chi tiết:</b> ${escapeHtml(d.subgroup || '—')} (${escapeHtml(d.subgroup_desc || '')})</p>
+            <p style="margin-top:4px;"><b>Ghi chú tiêu chuẩn:</b> ${escapeHtml(d.comment || '—')}</p>
+            <p style="margin-top:4px;"><b>Ứng dụng:</b> ${escapeHtml(d.application || '—')}</p>
+            <p style="margin-top:4px;"><b>Dạng sản phẩm / Khuôn đúc:</b> ${escapeHtml(d.product_form || '—')}</p>
+          </div>
+          <div class="info-box ${d.casting_notes ? 'casting-highlight' : ''}">
+            <h4>🔥 Hướng dẫn Nhiệt luyện & Công nghệ Đúc</h4>
+            ${d.casting_notes ? `<p style="margin-bottom:8px; color:#92400e;"><b>Ghi chú Nấu luyện / Đúc Nội bộ:</b><br/>${escapeHtml(d.casting_notes)}</p>` : ''}
+            <p style="white-space:pre-line;"><b>Chế độ Nhiệt luyện:</b><br/>${escapeHtml(d.heat_treatment || 'Chưa có hướng dẫn nhiệt luyện chi tiết')}</p>
+          </div>
+        </div>
+
+        <h3 style="font-size:14px; color:var(--primary); margin:12px 0 8px;">1. Thành Phần Hóa Học (% Khối lượng)</h3>
+        <div class="table-wrap" style="margin-bottom:16px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Nguyên Tố</th>
+                <th>Min (%)</th>
+                <th>Max (%)</th>
+                <th>Xấp xỉ (%)</th>
+                ${hasInternalRange ? '<th style="background:#fffbeb; color:#b45309;">Dải Mục Tiêu Nội Bộ (%)</th>' : ''}
+                <th>Tiêu Chuẩn Nhánh / Ghi Chú</th>
+              </tr>
+            </thead>
+            <tbody>${chemRowsHtml}</tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size:14px; color:var(--primary); margin:12px 0 8px;">2. Cơ Tính Ở Nhiệt Độ Thường</h3>
+        <div class="table-wrap" style="margin-bottom:16px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Quy Cách / Trạng Thái Mẫu</th>
+                <th>Giới Hạn Chảy Re (MPa)</th>
+                <th>Độ Bền Kéo Rm (MPa)</th>
+                <th>Độ Giãn Dài A (%)</th>
+                <th>Độ Dai Va Đập (J)</th>
+                <th>Độ Cứng</th>
+              </tr>
+            </thead>
+            <tbody>${mechRowsHtml}</tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size:14px; color:var(--primary); margin:12px 0 8px;">
+          3. Bảng Quy Đổi Mác Tương Đương Quốc Tế & Nội Bộ (${d.equivalents.length} mác tương đương)
+        </h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Mác Tương Đương</th>
+                <th>Tiêu Chuẩn</th>
+                <th>Quốc Gia</th>
+                <th>Tiêu Chuẩn Nhánh</th>
+                <th>Thành Phần Hóa Học Tóm Tắt</th>
+                <th style="text-align:right;">So Sánh</th>
+              </tr>
+            </thead>
+            <tbody>${eqRowsHtml}</tbody>
+          </table>
+        </div>
+      `;
+
+      document.getElementById('detail-modal').classList.add('open');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detail-modal').classList.remove('open');
+    }
+
+    // ==================== TAB 2: ĐỐI SÁNH QUANG PHỔ LÒ NẤU ====================
+    function clearSpectroInputs() {
+      META.common_elements.forEach(el => {
+        const inp = document.getElementById(`sp-el-${el}`);
+        if (inp) inp.value = '';
+      });
+    }
+
+    function loadSpectroPreset(preset) {
+      clearSpectroInputs();
+      const presets = {
+        wcb: { C: 0.21, Si: 0.45, Mn: 0.78, P: 0.022, S: 0.018, Cr: 0.15, Ni: 0.12, Mo: 0.05 },
+        fcd450: { C: 3.65, Si: 2.55, Mn: 0.25, P: 0.032, S: 0.010, Mg: 0.042 },
+        cf8m: { C: 0.05, Si: 0.95, Mn: 0.85, P: 0.028, S: 0.015, Cr: 19.2, Ni: 10.1, Mo: 2.25 },
+        crmo: { C: 0.40, Si: 0.35, Mn: 0.82, P: 0.020, S: 0.015, Cr: 1.05, Mo: 0.24 }
+      };
+      const data = presets[preset] || {};
+      for (const [el, val] of Object.entries(data)) {
+        const inp = document.getElementById(`sp-el-${el}`);
+        if (inp) inp.value = val;
+      }
+      runSpectroMatch();
+    }
+
+    function matchSpectrometerClientSide(payload) {
+      const activeElems = payload.elements;
+      const tolRatio = Math.max(payload.tolerance_pct || 15, 5) / 100.0;
+      const inputUpper = {};
+      for (const [k, v] of Object.entries(activeElems)) {
+        inputUpper[k.toUpperCase()] = { orig: k, val: v };
+      }
+
+      let evaluated = 0;
+      const results = [];
+
+      for (const m of SDB.materials) {
+        if (payload.only_internal && m.is_internal !== 1) continue;
+        if (payload.standard && m.standard !== payload.standard) continue;
+        if (payload.grp_code !== null && m.grp_code !== payload.grp_code) continue;
+
+        const cRows = SDB.chem[String(m.vk_key)];
+        if (!cRows || !cRows.length) continue;
+
+        // Gom spec_elems cho mác này
+        const specElems = {};
+        for (const r of cRows) {
+          // [el, cmin, cmax, capr, imin, imax, ctxt]
+          if (r[1] === null && r[2] === null && r[3] === null) continue;
+          const elUp = String(r[0]).toUpperCase();
+          if (!specElems[elUp]) {
+            specElems[elUp] = { element: r[0], c_min: r[1], c_max: r[2], c_approx: r[3], internal_min: r[4], internal_max: r[5] };
+          }
+        }
+
+        evaluated++;
+        let totalWeight = 0.0;
+        let earnedScore = 0.0;
+        let boundedCount = 0;
+        let hardReject = false;
+        const elemDetails = [];
+
+        for (const [elUp, item] of Object.entries(inputUpper)) {
+          const val = item.val;
+          const weight = ['C','SI','MN','CR','NI','MO','MG'].includes(elUp) ? 2.5 : 1.0;
+          const spec = specElems[elUp];
+
+          if (!spec) {
+            if (val >= 0.35 && elUp !== 'FE') {
+              totalWeight += weight;
+              elemDetails.push({ element: item.orig, actual: val, range: 'Không quy định', status: 'excess', note: `Dư ${item.orig} (${val}%)` });
+            } else if (val >= 0.08 && !['FE','SI','MN'].includes(elUp)) {
+              totalWeight += 0.35;
+            }
+            continue;
+          }
+
+          totalWeight += weight;
+          let cmin = spec.c_min, cmax = spec.c_max, capr = spec.c_approx;
+          const imin = spec.internal_min, imax = spec.internal_max;
+          if (cmin !== null && cmax !== null) boundedCount++;
+          if (cmin === null && cmax === null && capr !== null) {
+            cmin = +(capr * 0.85).toFixed(3);
+            cmax = +(capr * 1.15).toFixed(3);
+          }
+
+          const rangeStr = (cmin !== null && cmax !== null) ? `${cmin} - ${cmax}` : (cmax !== null ? `≤ ${cmax}` : (cmin !== null ? `≥ ${cmin}` : 'N/A'));
+          let inStd = true, devRatio = 0.0, status = 'ok', note = 'Đạt chuẩn';
+
+          if (cmin !== null && val < cmin) {
+            inStd = false;
+            const span = cmax !== null ? Math.max(cmax - cmin, cmin * 0.2, 0.05) : Math.max(cmin * 0.25, 0.05);
+            devRatio = (cmin - val) / span;
+            status = 'low';
+            note = `Thấp hơn Min (${(val - cmin).toFixed(3)}%)`;
+          } else if (cmax !== null && val > cmax) {
+            inStd = false;
+            const span = cmin !== null ? Math.max(cmax - cmin, cmax * 0.2, 0.05) : Math.max(cmax * 0.25, 0.02);
+            devRatio = (val - cmax) / span;
+            status = 'high';
+            note = `Vượt Max (+${(val - cmax).toFixed(3)}%)`;
+          }
+
+          if (inStd) {
+            if ((imin !== null && imin !== undefined && val < imin) || (imax !== null && imax !== undefined && val > imax)) {
+              earnedScore += weight * 0.94;
+              note = `Đạt chuẩn (Ngoài dải nội bộ ${imin ?? 0}-${imax ?? 'Max'})`;
+            } else {
+              earnedScore += weight * 1.0;
+            }
+          } else {
+            if (devRatio > 2.5) { hardReject = true; break; }
+            const elemScore = Math.max(0.0, 1.0 - (devRatio / (1.0 + tolRatio * 4.0)));
+            earnedScore += weight * elemScore;
+          }
+
+          elemDetails.push({ element: item.orig, actual: val, range: rangeStr, status, note });
+        }
+
+        if (hardReject || totalWeight === 0) continue;
+
+        for (const [elUp, spec] of Object.entries(specElems)) {
+          if (!inputUpper[elUp] && !['FE','(C+MN)/6','CE','CEV'].includes(elUp)) {
+            if (spec.c_min !== null && spec.c_min >= 0.20) {
+              const penW = spec.c_min >= 1.0 ? 2.5 : 1.2;
+              totalWeight += penW;
+              elemDetails.push({
+                element: spec.element,
+                actual: 0,
+                range: spec.c_max !== null ? `${spec.c_min} - ${spec.c_max}` : `≥ ${spec.c_min}`,
+                status: 'missing',
+                note: `Thiếu ${spec.element} (Yêu cầu ≥ ${spec.c_min}%)`
+              });
+            }
+          }
+        }
+
+        const matchPct = Math.round((earnedScore / totalWeight) * 1000) / 10;
+        if (matchPct >= 40.0) {
+          results.push({ ...m, match_pct: matchPct, bounded_count: boundedCount, elem_details: elemDetails });
+        }
+      }
+
+      results.sort((a, b) => (b.match_pct - a.match_pct) || (b.is_internal - a.is_internal) || (b.bounded_count - a.bounded_count));
+      return { total_evaluated: evaluated, items: results.slice(0, payload.limit || 40) };
+    }
+
+    async function runSpectroMatch() {
+      const elements = {};
+      META.common_elements.forEach(el => {
+        const v = document.getElementById(`sp-el-${el}`).value.trim();
+        if (v !== '') elements[el] = parseFloat(v);
+      });
+      if (Object.keys(elements).length === 0) {
+        return alert('Vui lòng nhập ít nhất 1 nguyên tố hóa học (VD: %C, %Si, %Mn...)');
+      }
+
+      const payload = {
+        elements,
+        tolerance_pct: parseFloat(document.getElementById('spec-tol').value || '15'),
+        standard: document.getElementById('spec-std').value || null,
+        grp_code: document.getElementById('spec-grp').value ? parseInt(document.getElementById('spec-grp').value) : null,
+        only_internal: document.getElementById('spec-only-internal').checked,
+        limit: 40
+      };
+
+      let data;
+      if (BACKEND_MODE) {
+        const res = await fetch('/api/spectrometer-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        data = await res.json();
+      } else {
+        data = matchSpectrometerClientSide(payload);
+      }
+
+      document.getElementById('spectro-result-title').textContent =
+        `Kết quả Đối sánh Quang phổ: Đã đánh giá ${data.total_evaluated.toLocaleString('vi-VN')} mác ứng viên, hiển thị ${data.items.length} mác gần nhất`;
+
+      const tbody = document.getElementById('spectro-tbody');
+      if (!data.items.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--muted);">Không tìm thấy mác thép nào nằm trong vùng dung sai. Hãy thử tăng biên độ dung sai (%).</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.items.map(item => {
+        const chips = (item.elem_details || []).map(ed => {
+          const cls = ed.status === 'ok' ? 'elem-ok' : ed.status === 'low' ? 'elem-low' : ed.status === 'high' ? 'elem-high' : 'elem-missing';
+          return `<span class="elem-chip ${cls}" title="${escapeHtml(ed.note)}">
+            <b>${escapeHtml(ed.element)}</b>: ${ed.actual}% [Chuẩn: ${escapeHtml(ed.range)}] (${escapeHtml(ed.note)})
+          </span>`;
+        }).join('');
+
+        const scoreColor = item.match_pct >= 90 ? '#059669' : item.match_pct >= 75 ? '#d97706' : '#dc2626';
+        return `
+          <tr class="${item.is_internal ? 'internal-row' : ''}">
+            <td>
+              <div style="font-size:16px; font-weight:800; color:${scoreColor};">${item.match_pct}%</div>
+              <div style="background:#e2e8f0; height:6px; border-radius:3px; margin-top:4px;">
+                <div style="background:${scoreColor}; width:${item.match_pct}%; height:100%; border-radius:3px;"></div>
+              </div>
+            </td>
+            <td>
+              <div style="font-weight:700; color:var(--primary); cursor:pointer;" onclick="openDetailModal(${item.vk_key})">
+                ${escapeHtml(item.material)}
+              </div>
+              <div style="font-size:11.5px; color:var(--muted);">${escapeHtml(item.grp_desc_vi || '')}</div>
+            </td>
+            <td>
+              ${item.is_internal ? '<span class="badge badge-internal">⭐ NỘI BỘ</span>' : `<span class="badge badge-std">${escapeHtml(item.standard)}</span>`}
+              <div style="font-size:11px; color:var(--muted);">${escapeHtml(item.subgroup || '')}</div>
+            </td>
+            <td>${chips}</td>
+            <td style="text-align:right; white-space:nowrap;">
+              <button class="btn btn-primary btn-sm" onclick="openDetailModal(${item.vk_key})">Chi tiết</button>
+              <button class="btn btn-outline btn-sm" onclick="toggleCompare(${item.vk_key})">+ So sánh</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ==================== TAB 3: SO SÁNH MÁC THÉP ====================
+    function toggleCompare(vkKey) {
+      vkKey = Number(vkKey);
+      const idx = compareList.indexOf(vkKey);
+      if (idx >= 0) {
+        compareList.splice(idx, 1);
+      } else {
+        if (compareList.length >= 5) {
+          return alert('Tối đa so sánh 5 mác vật liệu cùng lúc để bảng hiển thị rõ nhất.');
+        }
+        compareList.push(vkKey);
+      }
+      document.getElementById('compare-count').textContent = compareList.length;
+      doSearch(currentPage);
+    }
+
+    function clearCompare() {
+      compareList = [];
+      document.getElementById('compare-count').textContent = '0';
+      renderCompareTab();
+    }
+
+    async function renderCompareTab() {
+      const box = document.getElementById('compare-container');
+      if (!compareList.length) {
+        box.innerHTML = `<p style="color:var(--muted); padding:24px; text-align:center;">Chưa có mác vật liệu nào được chọn. Hãy bấm nút <b>[+ So sánh]</b> ở bảng tra cứu hoặc kết quả quang phổ.</p>`;
+        return;
+      }
+
+      const mats = [];
+      const allElems = [];
+      for (const vk of compareList) {
+        const d = await fetchMaterialDetail(vk);
+        if (d) {
+          mats.push(d);
+          (d.chem || []).forEach(c => {
+            if (!allElems.includes(c.element)) allElems.push(c.element);
+          });
+        }
+      }
+
+      const colHeaders = mats.map(m => `
+        <th style="min-width:210px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px; color:var(--primary);">${escapeHtml(m.material)}</span>
+            <button class="btn btn-outline btn-sm no-print" onclick="toggleCompare(${m.vk_key}); renderCompareTab();">✖</button>
+          </div>
+          <div style="font-size:11.5px; font-weight:normal; color:var(--muted);">
+            ${m.is_internal ? '⭐ Mác Nội Bộ' : escapeHtml(m.standard)} | ${escapeHtml(m.country || '')}
+          </div>
+        </th>
+      `).join('');
+
+      const elemRows = allElems.map(el => {
+        const cells = mats.map(m => {
+          const c = (m.chem || []).find(x => x.element === el);
+          if (!c) return `<td>—</td>`;
+          const stdStr = formatRange(c.c_min, c.c_max, c.c_approx);
+          const intStr = (c.internal_min !== null && c.internal_min !== undefined || c.internal_max !== null && c.internal_max !== undefined)
+            ? `<div style="font-size:11px; color:#b45309;">Nội bộ: ${c.internal_min ?? 0} - ${c.internal_max ?? 'Max'}%</div>` : '';
+          return `<td style="font-family:monospace; font-weight:600;">${stdStr}${intStr}</td>`;
+        }).join('');
+        return `<tr><td style="font-weight:700; background:#f8fafc;">Nguyên tố ${escapeHtml(el)} (%)</td>${cells}</tr>`;
+      }).join('');
+
+      const mechRow = (label, fn) => `
+        <tr>
+          <td style="font-weight:700; background:#f8fafc;">${label}</td>
+          ${mats.map(m => `<td>${fn(m)}</td>`).join('')}
+        </tr>
+      `;
+
+      box.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:200px;">Chỉ Tiêu Đối Chiếu</th>
+                ${colHeaders}
+              </tr>
+            </thead>
+            <tbody>
+              ${mechRow('Nhóm Vật Liệu', m => escapeHtml(m.grp_desc_vi || '—'))}
+              ${mechRow('Tiêu Chuẩn Nhánh', m => escapeHtml(m.subgroup || '—'))}
+              <tr><td colspan="${mats.length + 1}" style="background:#dbeafe; font-weight:700; color:#1e3a8a;">I. THÀNH PHẦN HÓA HỌC (% Khối lượng)</td></tr>
+              ${elemRows}
+              <tr><td colspan="${mats.length + 1}" style="background:#dbeafe; font-weight:700; color:#1e3a8a;">II. CƠ TÍNH & NHIỆT LUYỆN</td></tr>
+              ${mechRow('Cơ Tính Điển Hình', m => escapeHtml(m.mech_preview || '—'))}
+              ${mechRow('Chế Độ Nhiệt Luyện', m => `<div style="white-space:pre-line; font-size:12px;">${escapeHtml(m.heat_treatment || '—')}</div>`)}
+              ${mechRow('Ghi Chú Công Nghệ Đúc', m => `<div style="white-space:pre-line; font-size:12px; color:#b45309;">${escapeHtml(m.casting_notes || '—')}</div>`)}
+              ${mechRow('Ứng Dụng', m => `<div style="font-size:12px;">${escapeHtml(m.application || m.comment || '—')}</div>`)}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // ==================== XUẤT EXCEL (HỖ TRỢ CẢ BACKEND & GITHUB PAGES) ====================
+    async function exportMaterialsToExcel(vkKeys) {
+      if (BACKEND_MODE) {
+        window.location.href = `/api/export/excel?vk_keys=${vkKeys.join(',')}`;
+        return;
+      }
+      const details = vkKeys.map(k => getStaticMaterialDetail(k)).filter(Boolean);
+      if (!details.length) return alert('Không có dữ liệu để xuất');
+
+      let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body><table border="1">`;
+      html += `<tr style="background:#1e3a8a; color:#ffffff; font-weight:bold;">
+        <th>Mã VK_KEY</th><th>Tên Mác Vật Liệu</th><th>Mã Nội Bộ</th><th>Tiêu Chuẩn</th><th>Quốc Gia</th>
+        <th>Nhóm Vật Liệu</th><th>Tiêu Chuẩn Nhánh</th><th>Thành Phần Hóa Học</th><th>Cơ Tính</th>
+        <th>Chế Độ Nhiệt Luyện</th><th>Ghi Chú Đúc / Ứng Dụng</th><th>Mác Tương Đương</th>
+      </tr>`;
+      details.forEach(d => {
+        const eqStr = (d.equivalents || []).slice(0, 12).map(e => `${e.material} (${e.standard})`).join(', ');
+        html += `<tr>
+          <td>${d.vk_key}</td>
+          <td><b>${escapeHtml(d.material)}</b></td>
+          <td>${escapeHtml(d.internal_code || '')}</td>
+          <td>${escapeHtml(d.standard || '')}</td>
+          <td>${escapeHtml(d.country || '')}</td>
+          <td>${escapeHtml(d.grp_desc_vi || '')}</td>
+          <td>${escapeHtml(d.subgroup || '')}</td>
+          <td>${escapeHtml(d.chem_preview || '')}</td>
+          <td>${escapeHtml(d.mech_preview || '')}</td>
+          <td>${escapeHtml(d.heat_treatment || '')}</td>
+          <td>${escapeHtml(d.casting_notes || d.application || '')}</td>
+          <td>${escapeHtml(eqStr)}</td>
+        </tr>`;
+      });
+      html += `</table></body></html>`;
+
+      const blob = new Blob(['\ufeff', html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Bang_Thong_So_Mac_Thep_${new Date().toISOString().slice(0,10)}.xls`;
+      a.click();
+    }
+
+    function exportCompareExcel() {
+      if (!compareList.length) return alert('Chưa có mác nào trong bảng so sánh');
+      exportMaterialsToExcel(compareList);
+    }
+
+    function exportCurrentListExcel() {
+      if (!currentSearchItems.length) return alert('Danh sách đang trống');
+      exportMaterialsToExcel(currentSearchItems.map(i => i.vk_key));
+    }
+
+    function exportInternalExcel() {
+      if (BACKEND_MODE) {
+        window.location.href = '/api/export/excel';
+      } else {
+        const keys = SDB.materials.filter(m => m.is_internal === 1).map(m => m.vk_key);
+        exportMaterialsToExcel(keys);
+      }
+    }
+
+    function exportInternalJsonBackup() {
+      const internalKeys = SDB.materials.filter(m => m.is_internal === 1).map(m => m.vk_key);
+      const fullItems = internalKeys.map(k => getStaticMaterialDetail(k));
+      const blob = new Blob([JSON.stringify(fullItems, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `VICO_Mac_Noi_Bo_Backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    function importInternalJsonBackup(ev) {
+      const file = ev.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const arr = JSON.parse(e.target.result);
+          if (!Array.isArray(arr)) throw new Error('Định dạng file không hợp lệ');
+          for (const item of arr) {
+            if (BACKEND_MODE) {
+              await fetch('/api/internal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+              });
+            } else {
+              if (!item.vk_key || item.vk_key < 9000000) {
+                item.vk_key = 9000000 + Math.floor(Math.random() * 900000);
+              }
+              applyCustomInternalItemToMemory(item);
+              saveCustomInternalToStorage(item);
+            }
+          }
+          if (!BACKEND_MODE) recalcInternalCount();
+          await loadInternalList();
+          await doSearch(1);
+          alert(`Đã nhập thành công ${arr.length} mác nội bộ!`);
+        } catch (err) {
+          alert('Lỗi khi đọc file JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ==================== TAB 4: QUẢN LÝ MÁC NỘI BỘ CÔNG TY ĐÚC ====================
+    async function loadInternalList() {
+      let items = [];
+      if (BACKEND_MODE) {
+        const res = await fetch('/api/materials?only_internal=true&page_size=200');
+        const data = await res.json();
+        items = data.items || [];
+        document.getElementById('internal-count').textContent = data.total;
+      } else {
+        items = SDB.materials.filter(m => m.is_internal === 1);
+        document.getElementById('internal-count').textContent = items.length;
+      }
+
+      const tbody = document.getElementById('internal-tbody');
+      if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px;">Chưa có mác nội bộ nào.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = items.map(item => `
+        <tr class="internal-row">
+          <td>
+            <b style="color:var(--primary); cursor:pointer;" onclick="openDetailModal(${item.vk_key})">${escapeHtml(item.material)}</b>
+          </td>
+          <td><b>${escapeHtml(item.internal_code || '—')}</b></td>
+          <td>${escapeHtml(item.grp_desc_vi || '')}</td>
+          <td style="font-family:monospace; font-size:12px;">${escapeHtml(item.chem_preview || '')}</td>
+          <td style="font-size:12px;">${escapeHtml(item.mech_preview || '')}</td>
+          <td style="font-size:12px; color:#92400e;">${escapeHtml(item.casting_notes || '')}</td>
+          <td style="text-align:right; white-space:nowrap;">
+            <button class="btn btn-primary btn-sm" onclick="editInternalMaterial(${item.vk_key})">✏️ Sửa</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteInternalMaterial(${item.vk_key}, '${escapeJs(item.material)}')">🗑️ Xóa</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openInternalForm(title = '➕ Thêm Mác Vật Liệu Nội Bộ Mới') {
+      document.getElementById('internal-form-title').textContent = title;
+      document.getElementById('edit-vk-key').value = '';
+      document.getElementById('edit-crt-num').value = '';
+      document.getElementById('edit-equiv-vk').value = '';
+      ['in-material','in-code','in-subgroup','in-form','in-app','in-casting','in-ht'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('in-std').value = 'NOI_BO';
+      document.getElementById('in-grp').value = '6';
+
+      document.getElementById('in-chem-tbody').innerHTML = '';
+      ['C', 'Si', 'Mn', 'P', 'S', 'Cr', 'Ni', 'Mo'].forEach(el => addChemRow({ element: el }));
+
+      document.getElementById('in-mech-tbody').innerHTML = '';
+      addMechRow({ dimen: 'Mẫu đúc tiêu chuẩn Y-block' });
+
+      document.getElementById('internal-form-card').style.display = 'block';
+      document.getElementById('internal-form-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeInternalForm() {
+      document.getElementById('internal-form-card').style.display = 'none';
+    }
+
+    function addChemRow(c = {}) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" class="ch-el" value="${escapeHtml(c.element || '')}" placeholder="C, Si..." /></td>
+        <td><input type="number" step="0.001" class="ch-min" value="${c.c_min ?? ''}" /></td>
+        <td><input type="number" step="0.001" class="ch-max" value="${c.c_max ?? ''}" /></td>
+        <td><input type="number" step="0.001" class="ch-imin" value="${c.internal_min ?? ''}" style="background:#fffbeb;" /></td>
+        <td><input type="number" step="0.001" class="ch-imax" value="${c.internal_max ?? ''}" style="background:#fffbeb;" /></td>
+        <td><input type="text" class="ch-txt" value="${escapeHtml(c.c_text || '')}" /></td>
+        <td><button class="btn btn-outline btn-sm" onclick="this.closest('tr').remove()">✖</button></td>
+      `;
+      document.getElementById('in-chem-tbody').appendChild(tr);
+    }
+
+    function addMechRow(m = {}) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" class="mc-dim" value="${escapeHtml(m.dimen || '')}" /></td>
+        <td><input type="number" class="mc-ymin" value="${m.y_min ?? ''}" /></td>
+        <td><input type="number" class="mc-tmin" value="${m.t_min ?? ''}" /></td>
+        <td><input type="number" class="mc-tmax" value="${m.t_max ?? ''}" /></td>
+        <td><input type="number" step="0.1" class="mc-emin" value="${m.e_min ?? ''}" /></td>
+        <td><input type="number" class="mc-imin" value="${m.i_min ?? ''}" /></td>
+        <td><input type="text" class="mc-hard" value="${escapeHtml(m.hardness || '')}" /></td>
+        <td><button class="btn btn-outline btn-sm" onclick="this.closest('tr').remove()">✖</button></td>
+      `;
+      document.getElementById('in-mech-tbody').appendChild(tr);
+    }
+
+    async function editInternalMaterial(vkKey) {
+      const d = await fetchMaterialDetail(vkKey);
+      if (!d) return;
+      openInternalForm(`✏️ Chỉnh sửa Mác Nội Bộ: ${d.material}`);
+      document.getElementById('edit-vk-key').value = d.vk_key;
+      document.getElementById('edit-crt-num').value = (d.crt_nums && d.crt_nums[0]) ? d.crt_nums[0] : '';
+      document.getElementById('in-material').value = d.material || '';
+      document.getElementById('in-code').value = d.internal_code || '';
+      document.getElementById('in-std').value = d.standard || 'NOI_BO';
+      document.getElementById('in-grp').value = d.grp_code || 6;
+      document.getElementById('in-subgroup').value = d.subgroup || '';
+      document.getElementById('in-form').value = d.product_form || '';
+      document.getElementById('in-app').value = d.application || d.comment || '';
+      document.getElementById('in-casting').value = d.casting_notes || '';
+      document.getElementById('in-ht').value = d.heat_treatment || '';
+
+      document.getElementById('in-chem-tbody').innerHTML = '';
+      (d.chem || []).forEach(c => addChemRow(c));
+
+      document.getElementById('in-mech-tbody').innerHTML = '';
+      (d.mech || []).forEach(m => addMechRow(m));
+    }
+
+    function cloneToInternal(d) {
+      closeDetailModal();
+      const navBtns = document.querySelectorAll('.nav-btn');
+      switchTab('tab-internal', navBtns[3]);
+      openInternalForm(`📋 Tạo Mác Nội Bộ từ mác gốc: ${d.material} (${d.standard})`);
+      document.getElementById('edit-vk-key').value = '';
+      document.getElementById('edit-equiv-vk').value = d.vk_key;
+      document.getElementById('edit-crt-num').value = (d.crt_nums && d.crt_nums[0]) ? d.crt_nums[0] : '';
+      document.getElementById('in-material').value = `VICO-${d.material}`;
+      document.getElementById('in-code').value = `NB-${d.material}`;
+      document.getElementById('in-std').value = 'NOI_BO';
+      document.getElementById('in-grp').value = d.grp_code || 6;
+      document.getElementById('in-subgroup').value = `Tương đương ${d.standard} ${d.material} (${d.subgroup || ''})`;
+      document.getElementById('in-form').value = d.product_form || 'Đúc khuôn cát / Mẫu chảy';
+      document.getElementById('in-app').value = d.application || d.comment || '';
+      document.getElementById('in-ht').value = d.heat_treatment || '';
+
+      document.getElementById('in-chem-tbody').innerHTML = '';
+      (d.chem || []).forEach(c => addChemRow({
+        element: c.element,
+        c_min: c.c_min,
+        c_max: c.c_max,
+        internal_min: c.c_min,
+        internal_max: c.c_max,
+        c_text: c.c_text
+      }));
+
+      document.getElementById('in-mech-tbody').innerHTML = '';
+      (d.mech || []).forEach(m => addMechRow(m));
+    }
+
+    async function saveInternalMaterial() {
+      const editVk = document.getElementById('edit-vk-key').value;
+      const numOrNull = v => (v !== '' && v !== null && !isNaN(parseFloat(v))) ? parseFloat(v) : null;
+
+      const chem = [];
+      document.querySelectorAll('#in-chem-tbody tr').forEach(tr => {
+        const el = tr.querySelector('.ch-el').value.trim();
+        if (el) {
+          chem.push({
+            element: el,
+            c_min: numOrNull(tr.querySelector('.ch-min').value),
+            c_max: numOrNull(tr.querySelector('.ch-max').value),
+            internal_min: numOrNull(tr.querySelector('.ch-imin').value),
+            internal_max: numOrNull(tr.querySelector('.ch-imax').value),
+            c_text: tr.querySelector('.ch-txt').value.trim()
+          });
+        }
+      });
+
+      const mech = [];
+      document.querySelectorAll('#in-mech-tbody tr').forEach(tr => {
+        mech.push({
+          dimen: tr.querySelector('.mc-dim').value.trim(),
+          y_min: numOrNull(tr.querySelector('.mc-ymin').value),
+          t_min: numOrNull(tr.querySelector('.mc-tmin').value),
+          t_max: numOrNull(tr.querySelector('.mc-tmax').value),
+          e_min: numOrNull(tr.querySelector('.mc-emin').value),
+          i_min: numOrNull(tr.querySelector('.mc-imin').value),
+          hardness: tr.querySelector('.mc-hard').value.trim()
+        });
+      });
+
+      const payload = {
+        material: document.getElementById('in-material').value.trim(),
+        internal_code: document.getElementById('in-code').value.trim(),
+        standard: document.getElementById('in-std').value.trim() || 'NOI_BO',
+        grp_code: parseInt(document.getElementById('in-grp').value || '6'),
+        subgroup: document.getElementById('in-subgroup').value.trim(),
+        product_form: document.getElementById('in-form').value.trim(),
+        application: document.getElementById('in-app').value.trim(),
+        casting_notes: document.getElementById('in-casting').value.trim(),
+        heat_treatment: document.getElementById('in-ht').value.trim(),
+        equivalent_vk_key: numOrNull(document.getElementById('edit-equiv-vk').value),
+        crt_num: numOrNull(document.getElementById('edit-crt-num').value),
+        chem,
+        mech
+      };
+
+      if (!payload.material) return alert('Vui lòng nhập Tên Mác Nội Bộ');
+
+      if (BACKEND_MODE) {
+        const url = editVk ? `/api/internal/${editVk}` : '/api/internal';
+        const method = editVk ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const out = await res.json();
+        if (!res.ok) return alert(out.detail || 'Lỗi khi lưu mác nội bộ');
+        alert(out.message);
+      } else {
+        let vk = editVk ? Number(editVk) : Math.max(9000000, ...SDB.materials.map(m => m.vk_key)) + 1;
+        payload.vk_key = vk;
+        applyCustomInternalItemToMemory(payload);
+        saveCustomInternalToStorage(payload);
+        recalcInternalCount();
+        alert(`Đã lưu mác nội bộ "${payload.material}" vào bộ nhớ trình duyệt!`);
+      }
+
+      closeInternalForm();
+      await loadInternalList();
+      await doSearch(1);
+    }
+
+    async function deleteInternalMaterial(vkKey, name) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa mác nội bộ "${name}" không?`)) return;
+      if (BACKEND_MODE) {
+        const res = await fetch(`/api/internal/${vkKey}`, { method: 'DELETE' });
+        const out = await res.json();
+        if (!res.ok) return alert(out.detail || 'Không thể xóa');
+      } else {
+        vkKey = Number(vkKey);
+        SDB.materials = SDB.materials.filter(m => m.vk_key !== vkKey);
+        SDB.matByVk.delete(vkKey);
+        saveCustomInternalToStorage(null, vkKey);
+        recalcInternalCount();
+      }
+      await loadInternalList();
+      await doSearch(1);
+    }
+
+    function formatRange(minV, maxV, aprV) {
+      if (minV !== null && minV !== undefined && maxV !== null && maxV !== undefined) return `${minV} - ${maxV}`;
+      if (minV !== null && minV !== undefined) return `≥ ${minV}`;
+      if (maxV !== null && maxV !== undefined) return `≤ ${maxV}`;
+      if (aprV !== null && aprV !== undefined) return `~ ${aprV}`;
+      return '—';
+    }
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
