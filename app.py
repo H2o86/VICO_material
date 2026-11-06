@@ -4,9 +4,12 @@ Backend FastAPI cho Phần mềm Tra cứu Mác Thép & Gang Nội bộ Công ty
 Dữ liệu nền: Key to Steel v2005.11 (40.163 mác quốc tế) + Mác nội bộ Công ty.
 """
 
+import hashlib
 import io
+import json
 import os
 import re
+import secrets
 import sqlite3
 from collections import defaultdict
 from datetime import datetime
@@ -14,7 +17,7 @@ from typing import Dict, List, Optional
 
 import openpyxl
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -23,6 +26,45 @@ from pydantic import BaseModel
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "kts_database.db")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+ADMIN_CONFIG_PATH = os.path.join(BASE_DIR, "admin_config.json")
+# Mặc định mật khẩu Admin là: vico@2026 (SHA-256: ee2b60d43958c518f1dc1dca3722f88d2269610e13a19317b6b17e0e71746273)
+DEFAULT_ADMIN_HASH = hashlib.sha256(
+    os.environ.get("VICO_ADMIN_PASSWORD", "vico@2026").encode("utf-8")
+).hexdigest()
+ACTIVE_ADMIN_TOKENS = set()
+
+
+def get_admin_password_hash() -> str:
+    if os.path.exists(ADMIN_CONFIG_PATH):
+        try:
+            with open(ADMIN_CONFIG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if data.get("password_hash"):
+                    return data["password_hash"]
+        except Exception:
+            pass
+    return DEFAULT_ADMIN_HASH
+
+
+def save_admin_password_hash(new_hash: str):
+    with open(ADMIN_CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "password_hash": new_hash,
+                "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+            f,
+            indent=2,
+        )
+
+
+def verify_admin(x_admin_token: Optional[str] = Header(None)):
+    if not x_admin_token or x_admin_token not in ACTIVE_ADMIN_TOKENS:
+        raise HTTPException(
+            status_code=403,
+            detail="Từ chối truy cập: Chỉ Quản trị viên (Admin chuyên trách) mới có quyền thêm, sửa hoặc xóa mác nội bộ.",
+        )
+    return True
 
 app = FastAPI(
     title="Hệ thống Tra cứu Mác Thép & Gang - Công ty Đúc",
@@ -657,7 +699,38 @@ def compare_materials(vk_keys: str = Query(..., description="Danh sách vk_key c
     }
 
 
-# --- Quản lý Mác Nội Bộ Công Ty Đúc (CRUD) ---
+# --- Quản trị viên (Admin Authentication) & Quản lý Mác Nội Bộ Công Ty Đúc (CRUD) ---
+
+class AdminLoginRequest(BaseModel):
+    password: str
+
+
+class AdminChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+@app.post("/api/admin/login")
+def admin_login(req: AdminLoginRequest):
+    pw_hash = hashlib.sha256(req.password.strip().encode("utf-8")).hexdigest()
+    if pw_hash != get_admin_password_hash():
+        raise HTTPException(status_code=401, detail="Mật khẩu Quản trị viên (Admin) không chính xác!")
+    token = secrets.token_hex(24)
+    ACTIVE_ADMIN_TOKENS.add(token)
+    return {"status": "ok", "token": token, "message": "Đã đăng nhập quyền Quản trị viên (Admin)"}
+
+
+@app.post("/api/admin/change-password")
+def admin_change_password(req: AdminChangePasswordRequest, _admin: bool = Depends(verify_admin)):
+    old_hash = hashlib.sha256(req.old_password.strip().encode("utf-8")).hexdigest()
+    if old_hash != get_admin_password_hash():
+        raise HTTPException(status_code=401, detail="Mật khẩu hiện tại không đúng!")
+    if len(req.new_password.strip()) < 4:
+        raise HTTPException(status_code=400, detail="Mật khẩu mới phải có ít nhất 4 ký tự")
+    new_hash = hashlib.sha256(req.new_password.strip().encode("utf-8")).hexdigest()
+    save_admin_password_hash(new_hash)
+    return {"status": "ok", "password_hash": new_hash, "message": "Đã cập nhật mật khẩu Quản trị viên thành công!"}
+
 
 def _build_previews(chem_list: List[ChemElementInput], mech_list: List[MechPropInput]):
     c_parts = []
@@ -687,7 +760,7 @@ def _build_previews(chem_list: List[ChemElementInput], mech_list: List[MechPropI
 
 
 @app.post("/api/internal")
-def create_internal_material(payload: InternalMaterialPayload):
+def create_internal_material(payload: InternalMaterialPayload, _admin: bool = Depends(verify_admin)):
     if not payload.material.strip():
         raise HTTPException(status_code=400, detail="Tên mác vật liệu không được để trống")
 
@@ -785,7 +858,7 @@ def create_internal_material(payload: InternalMaterialPayload):
 
 
 @app.put("/api/internal/{vk_key}")
-def update_internal_material(vk_key: int, payload: InternalMaterialPayload):
+def update_internal_material(vk_key: int, payload: InternalMaterialPayload, _admin: bool = Depends(verify_admin)):
     conn = get_db()
     cur = conn.cursor()
 
@@ -878,7 +951,7 @@ def update_internal_material(vk_key: int, payload: InternalMaterialPayload):
 
 
 @app.delete("/api/internal/{vk_key}")
-def delete_internal_material(vk_key: int):
+def delete_internal_material(vk_key: int, _admin: bool = Depends(verify_admin)):
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT is_internal, material FROM materials WHERE vk_key = ?", (vk_key,))

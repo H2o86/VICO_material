@@ -1,4 +1,5 @@
 kts_database.db
+admin_config.json
 __pycache__/
 *.pyc
 .DS_Store

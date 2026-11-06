@@ -407,6 +407,9 @@
       <button class="nav-btn" onclick="switchTab('tab-internal', this)">
         🏭 Quản lý Mác Nội bộ <span class="badge-count" id="internal-count">0</span>
       </button>
+      <button class="nav-btn" id="topbar-admin-btn" onclick="handleTopbarAdminClick()" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);">
+        🔒 Quản trị (Admin)
+      </button>
     </nav>
   </header>
 
@@ -609,19 +612,22 @@
       <div class="card">
         <div class="card-title">
           <span>🏭 Danh Mục Mác Thép & Gang Nội Bộ Của Công Ty Đúc</span>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn btn-accent btn-sm" onclick="openInternalForm()">➕ Thêm Mác Nội Bộ Mới</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <button class="btn btn-accent btn-sm admin-only-ctrl" style="display:none;" onclick="openInternalForm()">➕ Thêm Mác Nội Bộ Mới</button>
             <button class="btn btn-success btn-sm" onclick="exportInternalExcel()">📥 Xuất Danh Mục Nội Bộ ra Excel</button>
-            <button class="btn btn-outline btn-sm" onclick="exportInternalJsonBackup()">💾 Tải File Sao Lưu (.json)</button>
-            <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+            <button class="btn btn-outline btn-sm admin-only-ctrl" style="display:none;" onclick="exportInternalJsonBackup()">💾 Tải File Sao Lưu (.json)</button>
+            <label class="btn btn-outline btn-sm admin-only-ctrl" style="display:none; cursor:pointer;">
               📂 Nhập File Sao Lưu (.json)
               <input type="file" accept=".json" style="display:none;" onchange="importInternalJsonBackup(event)" />
             </label>
+            <button class="btn btn-outline btn-sm admin-only-ctrl" style="display:none;" onclick="openChangePasswordModal()">🔑 Đổi Mật Khẩu Admin</button>
+            <button class="btn btn-danger btn-sm admin-only-ctrl" style="display:none;" onclick="logoutAdmin()">🚪 Thoát Quyền Admin</button>
+            <button class="btn btn-primary btn-sm guest-only-ctrl" onclick="openAdminModal()">🔑 Mở Khóa Quyền Admin (P.NCCN)</button>
           </div>
         </div>
-        <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">
-          Đã tích hợp <b>685 mác thép & gang thực tế từ sheet 'NCCN-Vật liệu - Mác thép' của VICO</b> (cùng các mác mẫu). Bạn có thể lọc nhanh bên dưới, chỉnh sửa thông số nấu luyện hoặc mở bất kỳ mác quốc tế nào trong 40.163 mác của Key to Steel và bấm <b>"Sao chép thành Mác Nội Bộ"</b>.
-        </p>
+        <div id="admin-status-banner" style="padding:10px 14px; border-radius:8px; margin-bottom:12px; font-size:13px; background:#f8fafc; border:1px solid #cbd5e1; color:#334155; display:flex; justify-content:space-between; align-items:center;">
+          <span>🔒 <b>Chế độ Tra cứu An toàn (Chỉ đọc)</b>: Đã tích hợp <b>685 mác thép & gang từ sheet 'NCCN-Vật liệu - Mác thép' của VICO</b>. Để tránh làm sai lệch dữ liệu chuẩn của công ty, tính năng thêm/sửa/xóa chỉ dành cho nhân viên chuyên trách có tài khoản Quản trị (Admin).</span>
+        </div>
         <div style="display:grid; grid-template-columns: 2fr 1.5fr auto; gap:10px; margin-bottom:12px; align-items:end;">
           <div class="form-group">
             <label>Tìm nhanh trong Danh mục Mác Nội bộ VICO</label>
@@ -780,6 +786,55 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL ĐĂNG NHẬP & ĐỔI MẬT KHẨU ADMIN ==================== -->
+  <div class="modal-backdrop" id="admin-modal" onclick="if(event.target===this) closeAdminModal()">
+    <div class="modal-content" style="max-width:440px;">
+      <div class="modal-header">
+        <div>
+          <h2 id="admin-modal-title" style="font-size:17px;">🔑 Xác Thực Quyền Quản Trị (Admin)</h2>
+          <p style="font-size:12px; color:#93c5fd;">Dành cho nhân viên chuyên trách quản lý dữ liệu mác vật liệu VICO</p>
+        </div>
+        <button class="btn btn-outline btn-sm" style="background:transparent; color:#fff; border-color:#475569;" onclick="closeAdminModal()">✖</button>
+      </div>
+      <div class="modal-body">
+        <!-- Form Đăng nhập Admin -->
+        <div id="admin-login-box">
+          <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">
+            Vui lòng nhập mật khẩu Quản trị viên để mở khóa tính năng <b>Thêm mới, Chỉnh sửa, Xóa</b> và <b>Nhập sao lưu</b> danh mục mác thép nội bộ.
+          </p>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label>Mật khẩu Quản trị viên (Admin Password)</label>
+            <input type="password" id="admin-pw-input" placeholder="Nhập mật khẩu Admin..." onkeydown="if(event.key==='Enter') submitAdminLogin()" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button class="btn btn-outline" onclick="closeAdminModal()">Hủy</button>
+            <button class="btn btn-primary" onclick="submitAdminLogin()">🔓 Mở Khóa Quyền Admin</button>
+          </div>
+        </div>
+
+        <!-- Form Đổi mật khẩu Admin -->
+        <div id="admin-change-pw-box" style="display:none;">
+          <div class="form-group" style="margin-bottom:10px;">
+            <label>Mật khẩu Admin hiện tại</label>
+            <input type="password" id="admin-old-pw" placeholder="Nhập mật khẩu hiện tại..." />
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label>Mật khẩu Admin mới (tối thiểu 4 ký tự)</label>
+            <input type="password" id="admin-new-pw" placeholder="Nhập mật khẩu mới..." />
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label>Xác nhận mật khẩu mới</label>
+            <input type="password" id="admin-confirm-pw" placeholder="Nhập lại mật khẩu mới..." onkeydown="if(event.key==='Enter') submitChangeAdminPassword()" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button class="btn btn-outline" onclick="closeAdminModal()">Hủy</button>
+            <button class="btn btn-success" onclick="submitChangeAdminPassword()">💾 Lưu Mật Khẩu Mới</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     /**
      * HỆ THỐNG CHẠY CHẾ ĐỘ KÉP (HYBRID DUAL-MODE):
@@ -806,6 +861,201 @@
     let currentSearchItems = [];
     let compareList = [];
     let currentDetailData = null;
+
+    // ==================== QUẢN LÝ PHÂN QUYỀN ADMIN ====================
+    // Mặc định SHA-256 của 'vico@2026': ee2b60d43958c518f1dc1dca3722f88d2269610e13a19317b6b17e0e71746273
+    const DEFAULT_ADMIN_HASH = 'ee2b60d43958c518f1dc1dca3722f88d2269610e13a19317b6b17e0e71746273';
+    const ADMIN_HASH_STORAGE_KEY = 'VICO_ADMIN_PW_HASH_V1';
+    const ADMIN_SESSION_KEY = 'VICO_ADMIN_SESSION_V1';
+
+    let isAdmin = false;
+    let adminToken = '';
+
+    async function sha256Hex(text) {
+      const msgBuffer = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function getLocalAdminHash() {
+      return localStorage.getItem(ADMIN_HASH_STORAGE_KEY) || DEFAULT_ADMIN_HASH;
+    }
+
+    function restoreAdminSession() {
+      try {
+        const raw = sessionStorage.getItem(ADMIN_SESSION_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.isAdmin) {
+            isAdmin = true;
+            adminToken = parsed.token || '';
+          }
+        }
+      } catch (e) {}
+      updateAdminUI();
+    }
+
+    function updateAdminUI() {
+      const topBtn = document.getElementById('topbar-admin-btn');
+      if (topBtn) {
+        if (isAdmin) {
+          topBtn.innerHTML = '🛡️ Admin P.NCCN (Đang bật)';
+          topBtn.style.background = '#15803d';
+          topBtn.style.borderColor = '#4ade80';
+          topBtn.style.color = '#ffffff';
+        } else {
+          topBtn.innerHTML = '🔒 Quản trị (Admin)';
+          topBtn.style.background = 'rgba(255,255,255,0.12)';
+          topBtn.style.borderColor = 'rgba(255,255,255,0.25)';
+          topBtn.style.color = '#cbd5e1';
+        }
+      }
+
+      document.querySelectorAll('.admin-only-ctrl').forEach(el => {
+        el.style.display = isAdmin ? 'inline-flex' : 'none';
+      });
+      document.querySelectorAll('.guest-only-ctrl').forEach(el => {
+        el.style.display = isAdmin ? 'none' : 'inline-flex';
+      });
+
+      const cloneBtn = document.getElementById('btn-clone-internal');
+      if (cloneBtn) {
+        cloneBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+      }
+
+      const banner = document.getElementById('admin-status-banner');
+      if (banner) {
+        if (isAdmin) {
+          banner.style.background = '#dcfce7';
+          banner.style.borderColor = '#86efac';
+          banner.style.color = '#166534';
+          banner.innerHTML = `
+            <span>🛡️ <b>Chế độ Quản trị viên (Admin chuyên trách) đang kích hoạt</b>: Bạn có toàn quyền Thêm mới, Chỉnh sửa, Xóa và Nhập/Xuất sao lưu danh mục <b>${META.internal_materials || 689} mác nội bộ VICO</b>.</span>
+            <span style="font-size:12px; font-weight:700;">Nhớ bấm [🚪 Thoát Quyền Admin] sau khi hoàn tất cập nhật!</span>
+          `;
+        } else {
+          banner.style.background = '#f8fafc';
+          banner.style.borderColor = '#cbd5e1';
+          banner.style.color = '#334155';
+          banner.innerHTML = `
+            <span>🔒 <b>Chế độ Tra cứu An toàn (Chỉ đọc)</b>: Đã tích hợp <b>685 mác thép & gang từ sheet 'NCCN-Vật liệu - Mác thép' của VICO</b>. Để tránh người dùng thông thường làm hư hại dữ liệu, tính năng thêm/sửa/xóa chỉ mở khi đăng nhập quyền Quản trị (Admin).</span>
+          `;
+        }
+      }
+
+      if (!isAdmin) {
+        closeInternalForm();
+      }
+      if (allInternalItems && allInternalItems.length) {
+        renderInternalPage(currentInternalPage);
+      }
+    }
+
+    function handleTopbarAdminClick() {
+      if (isAdmin) {
+        const navBtns = document.querySelectorAll('.nav-btn');
+        switchTab('tab-internal', navBtns[3]);
+      } else {
+        openAdminModal();
+      }
+    }
+
+    function openAdminModal() {
+      document.getElementById('admin-modal-title').textContent = '🔑 Xác Thực Quyền Quản Trị (Admin)';
+      document.getElementById('admin-login-box').style.display = 'block';
+      document.getElementById('admin-change-pw-box').style.display = 'none';
+      document.getElementById('admin-pw-input').value = '';
+      document.getElementById('admin-modal').classList.add('open');
+      setTimeout(() => document.getElementById('admin-pw-input').focus(), 80);
+    }
+
+    function openChangePasswordModal() {
+      if (!isAdmin) return openAdminModal();
+      document.getElementById('admin-modal-title').textContent = '🔑 Đổi Mật Khẩu Quản Trị Viên (Admin)';
+      document.getElementById('admin-login-box').style.display = 'none';
+      document.getElementById('admin-change-pw-box').style.display = 'block';
+      document.getElementById('admin-old-pw').value = '';
+      document.getElementById('admin-new-pw').value = '';
+      document.getElementById('admin-confirm-pw').value = '';
+      document.getElementById('admin-modal').classList.add('open');
+      setTimeout(() => document.getElementById('admin-old-pw').focus(), 80);
+    }
+
+    function closeAdminModal() {
+      document.getElementById('admin-modal').classList.remove('open');
+    }
+
+    async function submitAdminLogin() {
+      const pw = document.getElementById('admin-pw-input').value.trim();
+      if (!pw) return alert('Vui lòng nhập mật khẩu Quản trị viên!');
+
+      if (BACKEND_MODE) {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Mật khẩu không chính xác!');
+        isAdmin = true;
+        adminToken = data.token;
+      } else {
+        const inputHash = await sha256Hex(pw);
+        if (inputHash !== getLocalAdminHash()) {
+          return alert('Mật khẩu Quản trị viên (Admin) không chính xác!');
+        }
+        isAdmin = true;
+        adminToken = 'STATIC_ADMIN_' + inputHash.slice(0, 16);
+      }
+
+      sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ isAdmin: true, token: adminToken }));
+      closeAdminModal();
+      updateAdminUI();
+    }
+
+    async function submitChangeAdminPassword() {
+      const oldPw = document.getElementById('admin-old-pw').value.trim();
+      const newPw = document.getElementById('admin-new-pw').value.trim();
+      const confirmPw = document.getElementById('admin-confirm-pw').value.trim();
+
+      if (!oldPw || !newPw) return alert('Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới!');
+      if (newPw.length < 4) return alert('Mật khẩu mới phải có ít nhất 4 ký tự!');
+      if (newPw !== confirmPw) return alert('Mật khẩu xác nhận không khớp!');
+
+      if (BACKEND_MODE) {
+        const res = await fetch('/api/admin/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Token': adminToken
+          },
+          body: JSON.stringify({ old_password: oldPw, new_password: newPw })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Không thể đổi mật khẩu');
+        if (data.password_hash) {
+          localStorage.setItem(ADMIN_HASH_STORAGE_KEY, data.password_hash);
+        }
+        alert(data.message);
+      } else {
+        const oldHash = await sha256Hex(oldPw);
+        if (oldHash !== getLocalAdminHash()) {
+          return alert('Mật khẩu hiện tại không đúng!');
+        }
+        const newHash = await sha256Hex(newPw);
+        localStorage.setItem(ADMIN_HASH_STORAGE_KEY, newHash);
+        alert('Đã cập nhật mật khẩu Quản trị viên thành công!');
+      }
+      closeAdminModal();
+    }
+
+    function logoutAdmin() {
+      isAdmin = false;
+      adminToken = '';
+      sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      updateAdminUI();
+    }
 
     function normalizeCode(str) {
       return String(str || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -1037,6 +1287,7 @@
         </div>
       `).join('');
 
+      restoreAdminSession();
       await doSearch(1);
     }
 
@@ -1293,7 +1544,9 @@
       document.getElementById('m-subtitle').textContent =
         `Mã VK_KEY: ${d.vk_key} | Quốc gia: ${d.country || 'N/A'} | Nhóm: ${d.grp_desc_vi || 'N/A'} | Tiêu chuẩn nhánh: ${d.subgroup || 'N/A'}`;
 
-      document.getElementById('btn-clone-internal').onclick = () => cloneToInternal(d);
+      const cloneBtn = document.getElementById('btn-clone-internal');
+      cloneBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+      cloneBtn.onclick = () => cloneToInternal(d);
       document.getElementById('btn-modal-compare').onclick = () => toggleCompare(d.vk_key);
       document.getElementById('btn-modal-excel').onclick = () => exportMaterialsToExcel([d.vk_key]);
 
@@ -1805,6 +2058,10 @@
     }
 
     function importInternalJsonBackup(ev) {
+      if (!isAdmin) {
+        ev.target.value = '';
+        return openAdminModal();
+      }
       const file = ev.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -1814,11 +2071,18 @@
           if (!Array.isArray(arr)) throw new Error('Định dạng file không hợp lệ');
           for (const item of arr) {
             if (BACKEND_MODE) {
-              await fetch('/api/internal', {
+              const res = await fetch('/api/internal', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Admin-Token': adminToken
+                },
                 body: JSON.stringify(item)
               });
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.detail || 'Lỗi phân quyền Admin');
+              }
             } else {
               if (!item.vk_key || item.vk_key < 9000000) {
                 item.vk_key = 9000000 + Math.floor(Math.random() * 900000);
@@ -1930,8 +2194,13 @@
               <div>${escapeHtml(item.casting_notes || '')}</div>
             </td>
             <td style="text-align:right; white-space:nowrap;">
-              <button class="btn btn-primary btn-sm" onclick="editInternalMaterial(${item.vk_key})">✏️ Sửa</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteInternalMaterial(${item.vk_key}, '${escapeJs(item.material)}')">🗑️ Xóa</button>
+              ${isAdmin ? `
+                <button class="btn btn-primary btn-sm" onclick="editInternalMaterial(${item.vk_key})">✏️ Sửa</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteInternalMaterial(${item.vk_key}, '${escapeJs(item.material)}')">🗑️ Xóa</button>
+              ` : `
+                <button class="btn btn-outline btn-sm" onclick="openDetailModal(${item.vk_key})">👁️ Chi tiết</button>
+                <button class="btn btn-outline btn-sm" onclick="toggleCompare(${item.vk_key})">+ So sánh</button>
+              `}
             </td>
           </tr>
         `).join('');
@@ -1954,6 +2223,7 @@
     }
 
     function openInternalForm(title = '➕ Thêm Mác Vật Liệu Nội Bộ Mới') {
+      if (!isAdmin) return openAdminModal();
       document.getElementById('internal-form-title').textContent = title;
       document.getElementById('edit-vk-key').value = '';
       document.getElementById('edit-crt-num').value = '';
@@ -2006,6 +2276,7 @@
     }
 
     async function editInternalMaterial(vkKey) {
+      if (!isAdmin) return openAdminModal();
       const d = await fetchMaterialDetail(vkKey);
       if (!d) return;
       openInternalForm(`✏️ Chỉnh sửa Mác Nội Bộ: ${d.material}`);
@@ -2029,6 +2300,7 @@
     }
 
     function cloneToInternal(d) {
+      if (!isAdmin) return openAdminModal();
       closeDetailModal();
       const navBtns = document.querySelectorAll('.nav-btn');
       switchTab('tab-internal', navBtns[3]);
@@ -2060,6 +2332,7 @@
     }
 
     async function saveInternalMaterial() {
+      if (!isAdmin) return openAdminModal();
       const editVk = document.getElementById('edit-vk-key').value;
       const numOrNull = v => (v !== '' && v !== null && !isNaN(parseFloat(v))) ? parseFloat(v) : null;
 
@@ -2114,7 +2387,10 @@
         const method = editVk ? 'PUT' : 'POST';
         const res = await fetch(url, {
           method,
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Token': adminToken
+          },
           body: JSON.stringify(payload)
         });
         const out = await res.json();
@@ -2135,9 +2411,13 @@
     }
 
     async function deleteInternalMaterial(vkKey, name) {
+      if (!isAdmin) return openAdminModal();
       if (!confirm(`Bạn có chắc chắn muốn xóa mác nội bộ "${name}" không?`)) return;
       if (BACKEND_MODE) {
-        const res = await fetch(`/api/internal/${vkKey}`, { method: 'DELETE' });
+        const res = await fetch(`/api/internal/${vkKey}`, {
+          method: 'DELETE',
+          headers: { 'X-Admin-Token': adminToken }
+        });
         const out = await res.json();
         if (!res.ok) return alert(out.detail || 'Không thể xóa');
       } else {
