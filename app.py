@@ -160,7 +160,7 @@ def search_materials(
     hardness_q: str = Query("", description="Từ khóa độ cứng (VD: HB, HRC, 200)"),
     ht_q: str = Query("", description="Từ khóa nhiệt luyện / ứng dụng / ghi chú đúc"),
     page: int = Query(1, ge=1),
-    page_size: int = Query(30, ge=5, le=200),
+    page_size: int = Query(30, ge=5, le=2000),
 ):
     conn = get_db()
     cur = conn.cursor()

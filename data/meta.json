@@ -1,12 +1,12 @@
 {
-  "total_materials": 40167,
-  "internal_materials": 4,
+  "total_materials": 40852,
+  "internal_materials": 689,
   "standards": [
     {
       "standard": "NOI_BO",
-      "country": "Việt Nam (Nội bộ Công ty)",
+      "country": "Tiêu chuẩn Nội bộ VICO (Công ty TNHH Đúc Thắng Lợi)",
       "is_internal": 1,
-      "mat_count": 4
+      "mat_count": 689
     },
     {
       "standard": "ASTM",
@@ -230,61 +230,61 @@
       "grp_code": 1,
       "grp_desc": "Structural and constructional steels",
       "grp_desc_vi": "Thép kết cấu & Xây dựng (Structural & Constructional Steels)",
-      "mat_count": 40167
+      "mat_count": 21489
     },
     {
       "grp_code": 2,
       "grp_desc": "Tool steels",
       "grp_desc_vi": "Thép dụng cụ & Khuôn mẫu (Tool Steels)",
-      "mat_count": 40167
+      "mat_count": 2504
     },
     {
       "grp_code": 3,
       "grp_desc": "Stainless and heat resisting steels",
       "grp_desc_vi": "Thép không gỉ & Bền nhiệt (Stainless & Heat Resisting Steels)",
-      "mat_count": 40167
+      "mat_count": 7930
     },
     {
       "grp_code": 4,
       "grp_desc": "Stainless and heat resisiting st. & cast",
       "grp_desc_vi": "Thép & Thép đúc không gỉ / Bền nhiệt (Stainless & Heat Resisting Castings)",
-      "mat_count": 40167
+      "mat_count": 93
     },
     {
       "grp_code": 5,
       "grp_desc": "Welding filler materials",
       "grp_desc_vi": "Vật liệu hàn đắp (Welding Filler Materials)",
-      "mat_count": 40167
+      "mat_count": 3194
     },
     {
       "grp_code": 6,
       "grp_desc": "Steel castings",
       "grp_desc_vi": "Thép đúc (Steel Castings)",
-      "mat_count": 40167
+      "mat_count": 2979
     },
     {
       "grp_code": 7,
       "grp_desc": "Stainless, heat resisting and valve steels",
       "grp_desc_vi": "Thép không gỉ, Bền nhiệt & Thép xupáp (Valve Steels)",
-      "mat_count": 40167
+      "mat_count": 24
     },
     {
       "grp_code": 8,
       "grp_desc": "Aerospace materials",
       "grp_desc_vi": "Vật liệu hàng không vũ trụ (Aerospace Materials)",
-      "mat_count": 40167
+      "mat_count": 102
     },
     {
       "grp_code": 9,
       "grp_desc": "Materials with special physical properties",
       "grp_desc_vi": "Hợp kim có tính chất vật lý đặc biệt (Special Physical Properties)",
-      "mat_count": 40167
+      "mat_count": 1251
     },
     {
       "grp_code": 10,
       "grp_desc": "Iron",
       "grp_desc_vi": "Gang đúc (Cast Iron / Iron)",
-      "mat_count": 40167
+      "mat_count": 1286
     }
   ],
   "common_elements": [

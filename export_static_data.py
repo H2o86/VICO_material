@@ -49,7 +49,7 @@ def export_all():
         """
         SELECT g.grp_code, g.grp_desc, g.grp_desc_vi, COUNT(m.vk_key) as mat_count
         FROM steel_groups g
-        LEFT JOIN materials m ON m.grp_code = m.grp_code
+        LEFT JOIN materials m ON m.grp_code = g.grp_code
         GROUP BY g.grp_code
         ORDER BY g.grp_code ASC
         """
@@ -145,3 +145,4 @@ def export_all():
 
 if __name__ == "__main__":
     export_all()
+

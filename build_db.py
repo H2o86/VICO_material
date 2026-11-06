@@ -573,6 +573,13 @@ def build_database():
     # Khởi tạo một số Mác thép/gang Nội bộ mẫu của Công ty Đúc và liên kết tương đương quốc tế
     seed_internal_foundry_grades(cur)
 
+    # Nạp toàn bộ 685 mác vật liệu thực tế của VICO từ sheet 'NCCN-Vật liệu - Mác thép'
+    try:
+        from import_vico_sheet import import_vico_grades
+        import_vico_grades(conn)
+    except Exception as e:
+        print(f"Lưu ý khi nạp dữ liệu VICO mở rộng: {e}")
+
     # Tạo Index tối ưu hóa truy vấn
     print("Đang tạo Index tối ưu tốc độ tìm kiếm...")
     cur.executescript(

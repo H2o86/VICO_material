@@ -16,3 +16,4 @@ Phần mềm tra cứu mác vật liệu kim loại tích hợp cơ sở dữ li
 ## Chế độ hoạt động Kép (Hybrid Dual-Mode)
 - **Chạy trực tiếp trên GitHub Pages**: Tự động giải nén bộ dữ liệu tĩnh `data/*.json.gz` (~2.7 MB chứa toàn bộ 40.167 mác thép) ngay trên trình duyệt bằng `DecompressionStream('gzip')`.
 - **Chạy Server nội bộ LAN (Windows)**: Chạy `run_server.bat` để khởi động FastAPI + SQLite (`kts_database.db`) tại `http://localhost:8055`.
+

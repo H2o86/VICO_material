@@ -620,24 +620,38 @@
           </div>
         </div>
         <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">
-          Bạn có thể tự tạo mới hoàn toàn hoặc mở bất kỳ mác thép quốc tế nào trong 40.163 mác của Key to Steel và bấm <b>"Sao chép thành Mác Nội Bộ"</b> để thiết lập dải kiểm soát nấu luyện riêng của công ty.
+          Đã tích hợp <b>685 mác thép & gang thực tế từ sheet 'NCCN-Vật liệu - Mác thép' của VICO</b> (cùng các mác mẫu). Bạn có thể lọc nhanh bên dưới, chỉnh sửa thông số nấu luyện hoặc mở bất kỳ mác quốc tế nào trong 40.163 mác của Key to Steel và bấm <b>"Sao chép thành Mác Nội Bộ"</b>.
         </p>
+        <div style="display:grid; grid-template-columns: 2fr 1.5fr auto; gap:10px; margin-bottom:12px; align-items:end;">
+          <div class="form-group">
+            <label>Tìm nhanh trong Danh mục Mác Nội bộ VICO</label>
+            <input type="text" id="in-filter-q" placeholder="Nhập tên mác (VD: G13X2, HiCr27, E20-H, SCH21, Vautid, FCD450) hoặc mã VICO-..." oninput="renderInternalPage(1)" />
+          </div>
+          <div class="form-group">
+            <label>Lọc theo Phân nhóm NCCN VICO</label>
+            <select id="in-filter-sub" onchange="renderInternalPage(1)">
+              <option value="">-- Tất cả Phân nhóm VICO --</option>
+            </select>
+          </div>
+          <div style="font-size:12.5px; font-weight:700; color:var(--primary); padding-bottom:8px;" id="in-filter-summary"></div>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Tên Mác Nội Bộ</th>
                 <th>Mã Quản Lý</th>
-                <th>Nhóm Vật Liệu</th>
+                <th>Phân Nhóm NCCN / Nhóm Vật Liệu</th>
                 <th>Thành Phần Hóa Học</th>
-                <th>Cơ Tính Yêu Cầu</th>
-                <th>Ghi Chú Công Nghệ Đúc</th>
-                <th style="width:170px; text-align:right;">Thao Tác</th>
+                <th>Cơ Tính Tham Chiếu</th>
+                <th>Ghi Chú Đúc & Sản Phẩm Điển Hình</th>
+                <th style="width:150px; text-align:right;">Thao Tác</th>
               </tr>
             </thead>
             <tbody id="internal-tbody"></tbody>
           </table>
         </div>
+        <div class="pagination" id="internal-pagination"></div>
       </div>
 
       <!-- Form Thêm / Sửa Mác Nội Bộ -->
@@ -1825,39 +1839,118 @@
     }
 
     // ==================== TAB 4: QUẢN LÝ MÁC NỘI BỘ CÔNG TY ĐÚC ====================
+    let allInternalItems = [];
+    let currentInternalPage = 1;
+
     async function loadInternalList() {
-      let items = [];
       if (BACKEND_MODE) {
-        const res = await fetch('/api/materials?only_internal=true&page_size=200');
+        const res = await fetch('/api/materials?only_internal=true&page_size=1500');
         const data = await res.json();
-        items = data.items || [];
+        allInternalItems = data.items || [];
         document.getElementById('internal-count').textContent = data.total;
       } else {
-        items = SDB.materials.filter(m => m.is_internal === 1);
-        document.getElementById('internal-count').textContent = items.length;
+        allInternalItems = SDB.materials.filter(m => m.is_internal === 1).map(m => {
+          const dArr = SDB.desc[String(m.vk_key)] || [];
+          return {
+            ...m,
+            application: m.application || dArr[2] || '',
+            casting_notes: m.casting_notes || dArr[5] || ''
+          };
+        });
+        document.getElementById('internal-count').textContent = allInternalItems.length;
       }
 
+      // Tạo danh sách các phân nhóm NCCN trong dropdown
+      const subSel = document.getElementById('in-filter-sub');
+      const prevVal = subSel.value;
+      const subCounts = {};
+      allInternalItems.forEach(it => {
+        const sg = (it.subgroup || 'Khác').split('[')[0].trim();
+        subCounts[sg] = (subCounts[sg] || 0) + 1;
+      });
+      const sortedSubs = Object.entries(subCounts).sort((a, b) => b[1] - a[1]);
+      subSel.innerHTML = `<option value="">-- Tất cả Phân nhóm VICO (${allInternalItems.length}) --</option>` +
+        sortedSubs.map(([sg, cnt]) => `<option value="${escapeHtml(sg)}">${escapeHtml(sg)} (${cnt} mác)</option>`).join('');
+      if (prevVal && subCounts[prevVal]) subSel.value = prevVal;
+
+      renderInternalPage(1);
+    }
+
+    function renderInternalPage(page = 1) {
+      currentInternalPage = page;
+      const q = (document.getElementById('in-filter-q')?.value || '').trim().toUpperCase();
+      const qNorm = normalizeCode(q);
+      const subF = (document.getElementById('in-filter-sub')?.value || '').trim();
+
+      const filtered = allInternalItems.filter(it => {
+        if (subF) {
+          const sg = (it.subgroup || 'Khác').split('[')[0].trim();
+          if (sg !== subF) return false;
+        }
+        if (q) {
+          const hit = (it.material_norm && it.material_norm.includes(qNorm)) ||
+                      (it.material && it.material.toUpperCase().includes(q)) ||
+                      (it.internal_code && it.internal_code.toUpperCase().includes(q)) ||
+                      (it.chem_preview && it.chem_preview.toUpperCase().includes(q)) ||
+                      (it.application && it.application.toUpperCase().includes(q)) ||
+                      (it.casting_notes && it.casting_notes.toUpperCase().includes(q));
+          if (!hit) return false;
+        }
+        return true;
+      });
+
+      const pageSize = 50;
+      const total = filtered.length;
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      if (currentInternalPage > totalPages) currentInternalPage = totalPages;
+      const start = (currentInternalPage - 1) * pageSize;
+      const pageItems = filtered.slice(start, start + pageSize);
+
+      const sumEl = document.getElementById('in-filter-summary');
+      if (sumEl) sumEl.textContent = `Hiển thị ${pageItems.length} / ${total} mác nội bộ`;
+
       const tbody = document.getElementById('internal-tbody');
-      if (!items.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px;">Chưa có mác nội bộ nào.</td></tr>`;
-        return;
+      if (!pageItems.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px;">Không tìm thấy mác nội bộ nào khớp bộ lọc.</td></tr>`;
+      } else {
+        tbody.innerHTML = pageItems.map(item => `
+          <tr class="internal-row">
+            <td>
+              <b style="color:var(--primary); cursor:pointer; font-size:13.5px;" onclick="openDetailModal(${item.vk_key})">${escapeHtml(item.material)}</b>
+            </td>
+            <td><span class="badge badge-internal">${escapeHtml(item.internal_code || '—')}</span></td>
+            <td>
+              <div style="font-weight:600; font-size:12px;">${escapeHtml(item.subgroup || item.grp_desc_vi || '')}</div>
+              <div style="font-size:11px; color:var(--muted);">${escapeHtml(item.grp_desc_vi || '')}</div>
+            </td>
+            <td style="font-family:monospace; font-size:12px;">${escapeHtml(item.chem_preview || '—')}</td>
+            <td style="font-size:12px;">${escapeHtml(item.mech_preview || '—')}</td>
+            <td style="font-size:12px; color:#92400e;">
+              ${item.application ? `<div style="font-weight:600; color:#0f172a; margin-bottom:2px;">${escapeHtml(item.application)}</div>` : ''}
+              <div>${escapeHtml(item.casting_notes || '')}</div>
+            </td>
+            <td style="text-align:right; white-space:nowrap;">
+              <button class="btn btn-primary btn-sm" onclick="editInternalMaterial(${item.vk_key})">✏️ Sửa</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteInternalMaterial(${item.vk_key}, '${escapeJs(item.material)}')">🗑️ Xóa</button>
+            </td>
+          </tr>
+        `).join('');
       }
-      tbody.innerHTML = items.map(item => `
-        <tr class="internal-row">
-          <td>
-            <b style="color:var(--primary); cursor:pointer;" onclick="openDetailModal(${item.vk_key})">${escapeHtml(item.material)}</b>
-          </td>
-          <td><b>${escapeHtml(item.internal_code || '—')}</b></td>
-          <td>${escapeHtml(item.grp_desc_vi || '')}</td>
-          <td style="font-family:monospace; font-size:12px;">${escapeHtml(item.chem_preview || '')}</td>
-          <td style="font-size:12px;">${escapeHtml(item.mech_preview || '')}</td>
-          <td style="font-size:12px; color:#92400e;">${escapeHtml(item.casting_notes || '')}</td>
-          <td style="text-align:right; white-space:nowrap;">
-            <button class="btn btn-primary btn-sm" onclick="editInternalMaterial(${item.vk_key})">✏️ Sửa</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteInternalMaterial(${item.vk_key}, '${escapeJs(item.material)}')">🗑️ Xóa</button>
-          </td>
-        </tr>
-      `).join('');
+
+      const pagEl = document.getElementById('internal-pagination');
+      if (pagEl) {
+        pagEl.innerHTML = `
+          <div style="font-size:12.5px; color:var(--muted);">
+            Trang <b>${currentInternalPage}</b> / <b>${totalPages}</b> (Tổng <b>${total}</b> mác nội bộ VICO)
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-outline btn-sm" ${currentInternalPage <= 1 ? 'disabled' : ''} onclick="renderInternalPage(1)">⏮ Đầu</button>
+            <button class="btn btn-outline btn-sm" ${currentInternalPage <= 1 ? 'disabled' : ''} onclick="renderInternalPage(${currentInternalPage - 1})">◀ Trước</button>
+            <button class="btn btn-outline btn-sm" ${currentInternalPage >= totalPages ? 'disabled' : ''} onclick="renderInternalPage(${currentInternalPage + 1})">Sau ▶</button>
+            <button class="btn btn-outline btn-sm" ${currentInternalPage >= totalPages ? 'disabled' : ''} onclick="renderInternalPage(${totalPages})">Cuối ⏭</button>
+          </div>
+        `;
+      }
     }
 
     function openInternalForm(title = '➕ Thêm Mác Vật Liệu Nội Bộ Mới') {
@@ -2078,3 +2171,4 @@
   </script>
 </body>
 </html>
+
