@@ -732,6 +732,77 @@ def admin_change_password(req: AdminChangePasswordRequest, _admin: bool = Depend
     return {"status": "ok", "password_hash": new_hash, "message": "Đã cập nhật mật khẩu Quản trị viên thành công!"}
 
 
+@app.post("/api/sync-google-sheet")
+def sync_google_sheet_backend():
+    """Tải trực tiếp dữ liệu mới nhất từ Google Sheet 'NCCN-Vật liệu - Mác thép' và cập nhật vào kts_database.db."""
+    import csv
+    import urllib.parse
+    import urllib.request
+    from import_vico_sheet import VICO_JSON_PATH, import_vico_grades
+
+    sheet_id = "1IcZfCBDyr1oQjFc1bkEJ_0ZdO2imQ114SVj0KYR5u4c"
+    sheet_name = urllib.parse.quote("NCCN-Vật liệu - Mác thép")
+    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        raw_csv = urllib.request.urlopen(req, timeout=20).read().decode("utf-8")
+        csv_rows = list(csv.reader(io.StringIO(raw_csv)))
+
+        # Đọc nhóm hiện có từ vico_sheet_extracted.json để bảo toàn phân nhóm cho các mã cũ
+        old_group_by_code = {}
+        if os.path.exists(VICO_JSON_PATH):
+            try:
+                with open(VICO_JSON_PATH, "r", encoding="utf-8") as f:
+                    for item in json.load(f):
+                        old_group_by_code[item["code"].upper()] = item.get("group", "")
+            except Exception:
+                pass
+
+        extracted = []
+        for idx, r in enumerate(csv_rows[1:], 1):
+            vals = list(r) + [""] * 7
+            stt, code, name, std_hint, chem, mech, note = [str(x).strip() for x in vals[:7]]
+            if not code:
+                continue
+            grp = old_group_by_code.get(code.upper(), "Khac/Chua phan loai")
+            extracted.append(
+                {
+                    "row": idx + 2,
+                    "stt": stt,
+                    "group": grp,
+                    "code": code,
+                    "name": name,
+                    "std_hint": std_hint,
+                    "chem": chem,
+                    "mech": mech,
+                    "note": note,
+                }
+            )
+
+        with open(VICO_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(extracted, f, ensure_ascii=False, indent=2)
+
+        conn = get_db()
+        import_vico_grades(conn)
+        conn.close()
+        return {
+            "status": "ok",
+            "count": len(extracted),
+            "message": f"Đã đồng bộ trực tiếp {len(extracted)} mác nội bộ từ Google Sheet vào cơ sở dữ liệu!",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Không thể kết nối Google Sheet: {e}")
+
+
+@app.get("/google_apps_script_sync.gs")
+def get_gas_script_file():
+    gas_path = os.path.join(BASE_DIR, "google_apps_script_sync.gs")
+    if os.path.exists(gas_path):
+        return FileResponse(gas_path, media_type="text/plain; charset=utf-8")
+    raise HTTPException(status_code=404, detail="Không tìm thấy file google_apps_script_sync.gs")
+
+
 def _build_previews(chem_list: List[ChemElementInput], mech_list: List[MechPropInput]):
     c_parts = []
     for c in chem_list[:6]:

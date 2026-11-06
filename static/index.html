@@ -614,6 +614,9 @@
           <span>🏭 Danh Mục Mác Thép & Gang Nội Bộ Của Công Ty Đúc</span>
           <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
             <button class="btn btn-accent btn-sm admin-only-ctrl" style="display:none;" onclick="openInternalForm()">➕ Thêm Mác Nội Bộ Mới</button>
+            <button class="btn btn-outline btn-sm" id="btn-sync-gsheet" onclick="syncFromGoogleSheet(false)" style="border-color:#16a34a; color:#15803d; background:#f0fdf4;">🔄 Đồng bộ từ Google Sheet</button>
+            <a class="btn btn-outline btn-sm" href="https://docs.google.com/spreadsheets/d/1IcZfCBDyr1oQjFc1bkEJ_0ZdO2imQ114SVj0KYR5u4c/edit" target="_blank" style="text-decoration:none;">📊 Mở Google Sheet Gốc</a>
+            <button class="btn btn-outline btn-sm admin-only-ctrl" style="display:none; border-color:#2563eb; color:#1d4ed8;" onclick="openGoogleSheetConfigModal()">☁️ Cấu hình Ghi 2 Chiều (Google Sheet)</button>
             <button class="btn btn-success btn-sm" onclick="exportInternalExcel()">📥 Xuất Danh Mục Nội Bộ ra Excel</button>
             <button class="btn btn-outline btn-sm admin-only-ctrl" style="display:none;" onclick="exportInternalJsonBackup()">💾 Tải File Sao Lưu (.json)</button>
             <label class="btn btn-outline btn-sm admin-only-ctrl" style="display:none; cursor:pointer;">
@@ -835,6 +838,51 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL CẤU HÌNH ĐỒNG BỘ 2 CHIỀU GOOGLE SHEET ==================== -->
+  <div class="modal-backdrop" id="gsheet-modal" onclick="if(event.target===this) closeGoogleSheetConfigModal()">
+    <div class="modal-content" style="max-width:680px;">
+      <div class="modal-header">
+        <div>
+          <h2 style="font-size:17px;">☁️ Đồng Bộ Trực Tiếp 2 Chiều Với Google Sheet VICO</h2>
+          <p style="font-size:12px; color:#93c5fd;">Sheet: 'NCCN-Vật liệu - Mác thép' (ID: 1IcZfCBDyr1oQjFc1bkEJ_0ZdO2imQ114SVj0KYR5u4c)</p>
+        </div>
+        <button class="btn btn-outline btn-sm" style="background:transparent; color:#fff; border-color:#475569;" onclick="closeGoogleSheetConfigModal()">✖</button>
+      </div>
+      <div class="modal-body" style="font-size:13px; line-height:1.55;">
+        <div style="padding:10px 12px; background:#dcfce7; border:1px solid #86efac; border-radius:8px; color:#166534; margin-bottom:12px;">
+          ✅ <b>Chiều ĐỌC trực tiếp từ Google Sheet (Đã tự động bật 100%)</b>:<br/>
+          Mỗi khi mở trang hoặc nhấn F5 (hoặc bấm <b>🔄 Đồng bộ từ Google Sheet</b>), phần mềm tự động tải danh sách mới nhất từ sheet <code>'NCCN-Vật liệu - Mác thép'</code>. Nếu bạn sửa hoặc thêm dòng trực tiếp trên Google Sheet, mọi máy tính sẽ tự động cập nhật!
+        </div>
+
+        <div style="padding:12px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px;">
+          <h4 style="color:var(--primary); margin-bottom:6px;">✍️ Chiều GHI trực tiếp từ Web vào Google Sheet (Khi Admin Thêm/Sửa/Xóa trên Web)</h4>
+          <p style="color:var(--muted); margin-bottom:8px;">
+            Để khi Admin bấm Lưu/Xóa ngay trên giao diện Web mà dữ liệu tự động ghi thẳng vào Google Sheet của công ty (không cần mở Google Sheet), hãy thực hiện 1 lần duy nhất (mất ~1 phút):
+          </p>
+          <ol style="padding-left:18px; margin-bottom:10px; color:#334155;">
+            <li>Mở <a href="https://docs.google.com/spreadsheets/d/1IcZfCBDyr1oQjFc1bkEJ_0ZdO2imQ114SVj0KYR5u4c/edit" target="_blank" style="font-weight:700; color:#2563eb;">File Google Sheet của Công ty</a> $\rightarrow$ Trên menu chọn <b>Tiện ích mở rộng (Extensions) $\rightarrow$ Apps Script</b>.</li>
+            <li>Bấm nút bên dưới để sao chép mã <code>google_apps_script_sync.gs</code>, dán đè vào cửa sổ Apps Script và bấm <b>Lưu (Ctrl+S)</b>.</li>
+            <li>Bấm nút <b>Triển khai (Deploy) $\rightarrow$ Tùy chọn triển khai mới (New deployment)</b> $\rightarrow$ Chọn loại <b>Ứng dụng web (Web app)</b> $\rightarrow$ Mục <i>Ai có quyền truy cập</i> chọn <b>Bất kỳ ai (Anyone)</b> $\rightarrow$ Bấm <b>Triển khai</b>.</li>
+            <li>Copy đường dẫn <b>URL ứng dụng web</b> (<code>https://script.google.com/macros/s/.../exec</code>) dán vào ô bên dưới và bấm Lưu:</li>
+          </ol>
+          <div style="margin-bottom:10px;">
+            <button class="btn btn-outline btn-sm" onclick="copyGasScriptToClipboard()">📋 Sao chép mã Google Apps Script (1 chạm)</button>
+            <a class="btn btn-outline btn-sm" href="google_apps_script_sync.gs" target="_blank" style="text-decoration:none; margin-left:6px;">📄 Xem file google_apps_script_sync.gs</a>
+          </div>
+          <div class="form-group">
+            <label>URL Google Apps Script Web App (Dùng để Ghi 2 chiều từ Web vào Google Sheet)</label>
+            <input type="text" id="gsheet-webapp-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="btn btn-outline" onclick="closeGoogleSheetConfigModal()">Đóng</button>
+          <button class="btn btn-primary" onclick="saveGoogleSheetConfig()">💾 Lưu Cấu Hình & Đồng Bộ Ngay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     /**
      * HỆ THỐNG CHẠY CHẾ ĐỘ KÉP (HYBRID DUAL-MODE):
@@ -1045,6 +1093,7 @@
         }
         const newHash = await sha256Hex(newPw);
         localStorage.setItem(ADMIN_HASH_STORAGE_KEY, newHash);
+        await pushToGoogleSheetCloud('change_password', { new_hash: newHash });
         alert('Đã cập nhật mật khẩu Quản trị viên thành công!');
       }
       closeAdminModal();
@@ -1055,6 +1104,303 @@
       adminToken = '';
       sessionStorage.removeItem(ADMIN_SESSION_KEY);
       updateAdminUI();
+    }
+
+    // ==================== ĐỒNG BỘ 2 CHIỀU VỚI GOOGLE SHEET CÔNG TY ====================
+    const VICO_GSHEET_ID = '1IcZfCBDyr1oQjFc1bkEJ_0ZdO2imQ114SVj0KYR5u4c';
+    const VICO_GSHEET_NAME = 'NCCN-Vật liệu - Mác thép';
+    const GAS_URL_STORAGE_KEY = 'VICO_GAS_WEBAPP_URL_V1';
+    // Nếu bạn đã có sẵn link Google Apps Script Web App cố định, có thể điền vào hằng số dưới đây:
+    const DEFAULT_GAS_WEBAPP_URL = '';
+
+    function getGasWebAppUrl() {
+      return (localStorage.getItem(GAS_URL_STORAGE_KEY) || DEFAULT_GAS_WEBAPP_URL || '').trim();
+    }
+
+    function openGoogleSheetConfigModal() {
+      if (!isAdmin) return openAdminModal();
+      document.getElementById('gsheet-webapp-url').value = getGasWebAppUrl();
+      document.getElementById('gsheet-modal').classList.add('open');
+    }
+
+    function closeGoogleSheetConfigModal() {
+      document.getElementById('gsheet-modal').classList.remove('open');
+    }
+
+    async function saveGoogleSheetConfig() {
+      const url = document.getElementById('gsheet-webapp-url').value.trim();
+      localStorage.setItem(GAS_URL_STORAGE_KEY, url);
+      closeGoogleSheetConfigModal();
+      await syncFromGoogleSheet(false);
+    }
+
+    async function copyGasScriptToClipboard() {
+      try {
+        const res = await fetch('google_apps_script_sync.gs');
+        const txt = await res.text();
+        await navigator.clipboard.writeText(txt);
+        alert('Đã sao chép toàn bộ mã Google Apps Script vào bộ nhớ tạm (Clipboard)! Bạn hãy mở Google Sheet -> Tiện ích mở rộng -> Apps Script và nhấn Ctrl+V để dán.');
+      } catch (e) {
+        window.open('google_apps_script_sync.gs', '_blank');
+      }
+    }
+
+    function parseCsvText(csvStr) {
+      const rows = [];
+      let curRow = [];
+      let curVal = '';
+      let inQuotes = false;
+      for (let i = 0; i < csvStr.length; i++) {
+        const ch = csvStr[i];
+        const nextCh = csvStr[i + 1];
+        if (inQuotes) {
+          if (ch === '"' && nextCh === '"') {
+            curVal += '"';
+            i++;
+          } else if (ch === '"') {
+            inQuotes = false;
+          } else {
+            curVal += ch;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+          } else if (ch === ',') {
+            curRow.push(curVal);
+            curVal = '';
+          } else if (ch === '\n' || (ch === '\r' && nextCh === '\n')) {
+            if (ch === '\r') i++;
+            curRow.push(curVal);
+            rows.push(curRow);
+            curRow = [];
+            curVal = '';
+          } else if (ch !== '\r') {
+            curVal += ch;
+          }
+        }
+      }
+      if (curVal !== '' || curRow.length > 0) {
+        curRow.push(curVal);
+        rows.push(curRow);
+      }
+      return rows;
+    }
+
+    function parseSheetChemClient(s) {
+      if (!s) return [];
+      const elMap = {
+        C:'C', SI:'Si', MN:'Mn', P:'P', S:'S', CR:'Cr', CROM:'Cr', NI:'Ni', MO:'Mo',
+        CU:'Cu', V:'V', W:'W', AL:'Al', TI:'Ti', T:'Ti', NB:'Nb', B:'B', MG:'Mg',
+        CO:'Co', N:'N', ZR:'Zr', ZIRCON:'Zr', CA:'Ca', SN:'Sn', PB:'Pb'
+      };
+      let clean = String(s).replace(/(\d),(\d)/g, '$1.$2').replace(/÷/g, '-').replace(/~/g, '≈');
+      const results = [];
+      const seen = new Set();
+      const re = /(?:^|[\s,;(/])(?:(P\s*[,+]\s*S|S\s*[,+]\s*P|PS)|([A-Za-z]+))\s*(?:từ|=|:)?\s*([<>≤≥≈]?\s*\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?)\s*%?/g;
+      let m;
+      while ((m = re.exec(clean)) !== null) {
+        const psComb = m[1];
+        const elRaw = m[2];
+        const valStr = m[3].replace(/\s+/g, '');
+        let cmin = null, cmax = null;
+        if (valStr.includes('-')) {
+          const [p1, p2] = valStr.replace(/^[<>≤≥≈]+/, '').split('-');
+          cmin = parseFloat(p1);
+          cmax = parseFloat(p2);
+        } else if (valStr.startsWith('<') || valStr.startsWith('≤')) {
+          cmax = parseFloat(valStr.replace(/^[<≤]+/, ''));
+        } else if (valStr.startsWith('>') || valStr.startsWith('≥')) {
+          cmin = parseFloat(valStr.replace(/^[>≥]+/, ''));
+        } else {
+          const v = parseFloat(valStr.replace(/^[≈]+/, ''));
+          if (!isNaN(v)) { cmin = v; cmax = v; }
+        }
+        if (psComb) {
+          ['P', 'S'].forEach(e => {
+            if (!seen.has(e)) {
+              seen.add(e);
+              results.push({ element: e, c_min: cmin, c_max: cmax, internal_min: cmin, internal_max: cmax, c_text: '' });
+            }
+          });
+        } else if (elRaw) {
+          const stdEl = elMap[elRaw.toUpperCase()];
+          if (stdEl && !seen.has(stdEl)) {
+            seen.add(stdEl);
+            results.push({ element: stdEl, c_min: cmin, c_max: cmax, internal_min: cmin, internal_max: cmax, c_text: '' });
+          }
+        }
+      }
+      return results;
+    }
+
+    async function pushToGoogleSheetCloud(action, payloadObj) {
+      const gasUrl = getGasWebAppUrl();
+      if (!gasUrl) return { synced: false, reason: 'no_url' };
+      try {
+        const bodyData = {
+          action,
+          admin_hash: getLocalAdminHash(),
+          ...payloadObj
+        };
+        const res = await fetch(gasUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(bodyData)
+        });
+        const out = await res.json();
+        return { synced: out.status === 'ok', response: out };
+      } catch (err) {
+        console.warn('Lỗi ghi Google Sheet qua Apps Script:', err);
+        return { synced: false, error: err };
+      }
+    }
+
+    async function syncFromGoogleSheet(silent = true) {
+      const btn = document.getElementById('btn-sync-gsheet');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Đang đồng bộ Google Sheet...';
+      }
+      try {
+        if (BACKEND_MODE) {
+          const res = await fetch('/api/sync-google-sheet', { method: 'POST' });
+          const out = await res.json();
+          if (res.ok) {
+            const metaRes = await fetch('/api/meta');
+            if (metaRes.ok) META = await metaRes.json();
+            await loadInternalList();
+            await doSearch(currentPage);
+            if (!silent) alert(out.message);
+          } else if (!silent) {
+            alert(out.detail || 'Không thể đồng bộ Google Sheet');
+          }
+          return;
+        }
+
+        // TRÊN GITHUB PAGES (STATIC MODE):
+        // 1. Nếu đã cấu hình URL Google Apps Script Web App -> đọc cả sheet chính lẫn VICO_Web_Sync
+        const gasUrl = getGasWebAppUrl();
+        let syncedCount = 0;
+
+        if (gasUrl) {
+          try {
+            const res = await fetch(gasUrl);
+            const data = await res.json();
+            if (data && data.status === 'ok') {
+              if (Array.isArray(data.deleted_vk_keys) && data.deleted_vk_keys.length) {
+                const delSet = new Set(data.deleted_vk_keys.map(Number));
+                SDB.materials = SDB.materials.filter(m => !delSet.has(m.vk_key));
+                delSet.forEach(vk => SDB.matByVk.delete(vk));
+              }
+              if (Array.isArray(data.overrides)) {
+                data.overrides.forEach(item => {
+                  applyCustomInternalItemToMemory(item);
+                  syncedCount++;
+                });
+              }
+            }
+          } catch (e) {
+            console.warn('Fallback sang đọc trực tiếp CSV từ Google Sheet:', e);
+          }
+        }
+
+        // 2. Luôn đọc trực tiếp bảng 'NCCN-Vật liệu - Mác thép' từ Google Sheet Visualization CSV API (CORS-enabled)
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${VICO_GSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(VICO_GSHEET_NAME)}&_t=${Date.now()}`;
+        const csvRes = await fetch(csvUrl);
+        if (csvRes.ok) {
+          const csvText = await csvRes.text();
+          const rows = parseCsvText(csvText);
+          // Tìm các mác mới được thêm vào Google Sheet hoặc được chỉnh sửa cột Thành phần hóa học / Ghi chú
+          const existingByCode = new Map();
+          SDB.materials.forEach(m => {
+            if (m.is_internal === 1) {
+              existingByCode.set(m.material.trim().toUpperCase(), m);
+            }
+          });
+
+          // Lấy danh sách các mã đã bị xóa cục bộ hoặc trên cloud
+          let deletedSet = new Set();
+          try {
+            const rawLocal = localStorage.getItem('vico_custom_internal_v1');
+            if (rawLocal) {
+              const parsedLocal = JSON.parse(rawLocal);
+              if (Array.isArray(parsedLocal.deletedVks)) {
+                parsedLocal.deletedVks.forEach(k => deletedSet.add(Number(k)));
+              }
+            }
+          } catch (e) {}
+
+          let maxVk = Math.max(9000695, ...SDB.materials.map(m => m.vk_key));
+          for (let i = 1; i < rows.length; i++) {
+            const r = rows[i];
+            const stt = String(r[0] || '').trim();
+            const code = String(r[1] || '').trim();
+            const name = String(r[2] || '').trim();
+            const stdHint = String(r[3] || '').trim();
+            const chemRaw = String(r[4] || '').trim();
+            const mechRaw = String(r[5] || '').trim();
+            const noteRaw = String(r[6] || '').trim();
+            if (!code) continue;
+
+            const existing = existingByCode.get(code.toUpperCase());
+            if (!existing) {
+              // Mác mới được thêm trên Google Sheet!
+              maxVk++;
+              const parsedChem = parseSheetChemClient(chemRaw || code);
+              const newItem = {
+                vk_key: maxVk,
+                material: code,
+                internal_code: `VICO-${stt || (maxVk - 9000010)}`,
+                standard: 'NOI_BO',
+                grp_code: 6,
+                subgroup: stdHint ? `Mác nội bộ VICO [${stdHint}]` : 'Mác nội bộ VICO (Đồng bộ Google Sheet)',
+                product_form: 'Đúc / Gia công cơ khí VICO',
+                application: noteRaw || name,
+                casting_notes: chemRaw ? `TPHH gốc trên Google Sheet: ${chemRaw}` : (name || ''),
+                heat_treatment: '',
+                chem: parsedChem,
+                mech: mechRaw ? [{ dimen: 'Theo Google Sheet', hardness: mechRaw }] : []
+              };
+              if (!deletedSet.has(maxVk)) {
+                applyCustomInternalItemToMemory(newItem);
+                syncedCount++;
+              }
+            } else if (chemRaw && !existing.chem_preview) {
+              // Mác cũ mới được bổ sung Thành phần hóa học trên Google Sheet
+              const parsedChem = parseSheetChemClient(chemRaw);
+              if (parsedChem.length) {
+                const dArr = SDB.desc[String(existing.vk_key)] || [];
+                applyCustomInternalItemToMemory({
+                  ...existing,
+                  application: noteRaw || dArr[2] || '',
+                  casting_notes: `TPHH cập nhật từ Google Sheet: ${chemRaw}`,
+                  chem: parsedChem,
+                  mech: []
+                });
+                syncedCount++;
+              }
+            }
+          }
+          // Áp dụng lại các chỉnh sửa trong localStorage (nếu có) để ưu tiên thao tác vừa sửa
+          loadCustomInternalFromStorage();
+          recalcInternalCount();
+          if (document.getElementById('tab-internal').classList.contains('active')) {
+            await loadInternalList();
+          }
+          await doSearch(currentPage);
+          if (!silent) {
+            alert(`Đã đồng bộ trực tiếp với Google Sheet 'NCCN-Vật liệu - Mác thép' (${rows.length - 1} dòng trên Sheet, tổng ${META.internal_materials} mác nội bộ)!`);
+          }
+        }
+      } catch (err) {
+        console.warn('Không thể đồng bộ trực tiếp từ Google Sheet:', err);
+        if (!silent) alert('Không thể kết nối tới Google Sheet: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '🔄 Đồng bộ từ Google Sheet';
+        }
+      }
     }
 
     function normalizeCode(str) {
@@ -1289,6 +1635,10 @@
 
       restoreAdminSession();
       await doSearch(1);
+      // Tự động đồng bộ ngầm với Google Sheet 'NCCN-Vật liệu - Mác thép' ngay khi mở trang
+      if (!BACKEND_MODE) {
+        syncFromGoogleSheet(true);
+      }
     }
 
     function switchTab(tabId, btnEl) {
@@ -2395,6 +2745,8 @@
         });
         const out = await res.json();
         if (!res.ok) return alert(out.detail || 'Lỗi khi lưu mác nội bộ');
+        payload.vk_key = out.vk_key;
+        await pushToGoogleSheetCloud('upsert', { item: payload });
         alert(out.message);
       } else {
         let vk = editVk ? Number(editVk) : Math.max(9000000, ...SDB.materials.map(m => m.vk_key)) + 1;
@@ -2402,7 +2754,13 @@
         applyCustomInternalItemToMemory(payload);
         saveCustomInternalToStorage(payload);
         recalcInternalCount();
-        alert(`Đã lưu mác nội bộ "${payload.material}" vào bộ nhớ trình duyệt!`);
+
+        const cloudRes = await pushToGoogleSheetCloud('upsert', { item: payload });
+        if (cloudRes.synced) {
+          alert(`Đã lưu mác nội bộ "${payload.material}" và ghi trực tiếp vào Google Sheet của Công ty!`);
+        } else {
+          alert(`Đã lưu mác nội bộ "${payload.material}" (Giữ nguyên khi F5). Lưu ý: Để tự động ghi thẳng vào Google Sheet cho mọi máy tính khác, hãy bấm nút [☁️ Cấu hình Ghi 2 Chiều (Google Sheet)]!`);
+        }
       }
 
       closeInternalForm();
@@ -2420,12 +2778,14 @@
         });
         const out = await res.json();
         if (!res.ok) return alert(out.detail || 'Không thể xóa');
+        await pushToGoogleSheetCloud('delete', { vk_key: vkKey, material: name });
       } else {
         vkKey = Number(vkKey);
         SDB.materials = SDB.materials.filter(m => m.vk_key !== vkKey);
         SDB.matByVk.delete(vkKey);
         saveCustomInternalToStorage(null, vkKey);
         recalcInternalCount();
+        await pushToGoogleSheetCloud('delete', { vk_key: vkKey, material: name });
       }
       await loadInternalList();
       await doSearch(1);
