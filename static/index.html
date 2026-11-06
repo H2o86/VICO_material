@@ -1110,8 +1110,8 @@
     const VICO_GSHEET_ID = '1IcZfCBDyr1oQjFc1bkEJ_0ZdO2imQ114SVj0KYR5u4c';
     const VICO_GSHEET_NAME = 'NCCN-Vật liệu - Mác thép';
     const GAS_URL_STORAGE_KEY = 'VICO_GAS_WEBAPP_URL_V1';
-    // Nếu bạn đã có sẵn link Google Apps Script Web App cố định, có thể điền vào hằng số dưới đây:
-    const DEFAULT_GAS_WEBAPP_URL = '';
+    // URL Google Apps Script Web App mặc định kết nối 2 chiều với Google Sheet 'NCCN-Vật liệu - Mác thép':
+    const DEFAULT_GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyB6PJ1WUmHqxEFfh9G-4-1svhHwMul7QKZPAWOdAP5p0u_jkD13fLAh4DymGTfZFb9/exec';
 
     function getGasWebAppUrl() {
       return (localStorage.getItem(GAS_URL_STORAGE_KEY) || DEFAULT_GAS_WEBAPP_URL || '').trim();
@@ -1281,6 +1281,7 @@
         // 1. Nếu đã cấu hình URL Google Apps Script Web App -> đọc cả sheet chính lẫn VICO_Web_Sync
         const gasUrl = getGasWebAppUrl();
         let syncedCount = 0;
+        let sheetRowsFromGas = null;
 
         if (gasUrl) {
           try {
@@ -1291,6 +1292,9 @@
                 const delSet = new Set(data.deleted_vk_keys.map(Number));
                 SDB.materials = SDB.materials.filter(m => !delSet.has(m.vk_key));
                 delSet.forEach(vk => SDB.matByVk.delete(vk));
+              }
+              if (Array.isArray(data.sheet_rows)) {
+                sheetRowsFromGas = data.sheet_rows;
               }
               if (Array.isArray(data.overrides)) {
                 data.overrides.forEach(item => {
@@ -1304,13 +1308,42 @@
           }
         }
 
-        // 2. Luôn đọc trực tiếp bảng 'NCCN-Vật liệu - Mác thép' từ Google Sheet Visualization CSV API (CORS-enabled)
-        const csvUrl = `https://docs.google.com/spreadsheets/d/${VICO_GSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(VICO_GSHEET_NAME)}&_t=${Date.now()}`;
-        const csvRes = await fetch(csvUrl);
-        if (csvRes.ok) {
-          const csvText = await csvRes.text();
-          const rows = parseCsvText(csvText);
-          // Tìm các mác mới được thêm vào Google Sheet hoặc được chỉnh sửa cột Thành phần hóa học / Ghi chú
+        // 2. Xử lý danh sách dòng từ sheet 'NCCN-Vật liệu - Mác thép' (từ Apps Script hoặc fallback CSV API)
+        let normalizedRows = [];
+        if (sheetRowsFromGas && sheetRowsFromGas.length) {
+          normalizedRows = sheetRowsFromGas.map(sr => ({
+            stt: String(sr.stt || '').trim(),
+            code: String(sr.code || '').trim(),
+            name: String(sr.name || '').trim(),
+            stdHint: String(sr.standard_hint || '').trim(),
+            chemRaw: String(sr.chem_raw || '').trim(),
+            mechRaw: String(sr.mech_raw || '').trim(),
+            noteRaw: String(sr.note || '').trim(),
+            group: String(sr.group || '').trim()
+          }));
+        } else {
+          const csvUrl = `https://docs.google.com/spreadsheets/d/${VICO_GSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(VICO_GSHEET_NAME)}&_t=${Date.now()}`;
+          const csvRes = await fetch(csvUrl);
+          if (csvRes.ok) {
+            const csvText = await csvRes.text();
+            const rows = parseCsvText(csvText);
+            for (let i = 1; i < rows.length; i++) {
+              const r = rows[i];
+              normalizedRows.push({
+                stt: String(r[0] || '').trim(),
+                code: String(r[1] || '').trim(),
+                name: String(r[2] || '').trim(),
+                stdHint: String(r[3] || '').trim(),
+                chemRaw: String(r[4] || '').trim(),
+                mechRaw: String(r[5] || '').trim(),
+                noteRaw: String(r[6] || '').trim(),
+                group: ''
+              });
+            }
+          }
+        }
+
+        if (normalizedRows.length) {
           const existingByCode = new Map();
           SDB.materials.forEach(m => {
             if (m.is_internal === 1) {
@@ -1318,7 +1351,6 @@
             }
           });
 
-          // Lấy danh sách các mã đã bị xóa cục bộ hoặc trên cloud
           let deletedSet = new Set();
           try {
             const rawLocal = localStorage.getItem('vico_custom_internal_v1');
@@ -1331,49 +1363,39 @@
           } catch (e) {}
 
           let maxVk = Math.max(9000695, ...SDB.materials.map(m => m.vk_key));
-          for (let i = 1; i < rows.length; i++) {
-            const r = rows[i];
-            const stt = String(r[0] || '').trim();
-            const code = String(r[1] || '').trim();
-            const name = String(r[2] || '').trim();
-            const stdHint = String(r[3] || '').trim();
-            const chemRaw = String(r[4] || '').trim();
-            const mechRaw = String(r[5] || '').trim();
-            const noteRaw = String(r[6] || '').trim();
-            if (!code) continue;
-
-            const existing = existingByCode.get(code.toUpperCase());
+          for (const r of normalizedRows) {
+            if (!r.code) continue;
+            const existing = existingByCode.get(r.code.toUpperCase());
             if (!existing) {
-              // Mác mới được thêm trên Google Sheet!
               maxVk++;
-              const parsedChem = parseSheetChemClient(chemRaw || code);
+              const parsedChem = parseSheetChemClient(r.chemRaw || r.code);
+              const subgBase = r.group ? `Mác nội bộ VICO - ${r.group}` : 'Mác nội bộ VICO (Đồng bộ Google Sheet)';
               const newItem = {
                 vk_key: maxVk,
-                material: code,
-                internal_code: `VICO-${stt || (maxVk - 9000010)}`,
+                material: r.code,
+                internal_code: `VICO-${r.stt || (maxVk - 9000010)}`,
                 standard: 'NOI_BO',
                 grp_code: 6,
-                subgroup: stdHint ? `Mác nội bộ VICO [${stdHint}]` : 'Mác nội bộ VICO (Đồng bộ Google Sheet)',
+                subgroup: r.stdHint ? `${subgBase} [${r.stdHint}]` : subgBase,
                 product_form: 'Đúc / Gia công cơ khí VICO',
-                application: noteRaw || name,
-                casting_notes: chemRaw ? `TPHH gốc trên Google Sheet: ${chemRaw}` : (name || ''),
+                application: r.noteRaw || r.name,
+                casting_notes: r.chemRaw ? `TPHH gốc trên Google Sheet: ${r.chemRaw}` : (r.name || ''),
                 heat_treatment: '',
                 chem: parsedChem,
-                mech: mechRaw ? [{ dimen: 'Theo Google Sheet', hardness: mechRaw }] : []
+                mech: r.mechRaw ? [{ dimen: 'Theo Google Sheet', hardness: r.mechRaw }] : []
               };
               if (!deletedSet.has(maxVk)) {
                 applyCustomInternalItemToMemory(newItem);
                 syncedCount++;
               }
-            } else if (chemRaw && !existing.chem_preview) {
-              // Mác cũ mới được bổ sung Thành phần hóa học trên Google Sheet
-              const parsedChem = parseSheetChemClient(chemRaw);
+            } else if (r.chemRaw && !existing.chem_preview) {
+              const parsedChem = parseSheetChemClient(r.chemRaw);
               if (parsedChem.length) {
                 const dArr = SDB.desc[String(existing.vk_key)] || [];
                 applyCustomInternalItemToMemory({
                   ...existing,
-                  application: noteRaw || dArr[2] || '',
-                  casting_notes: `TPHH cập nhật từ Google Sheet: ${chemRaw}`,
+                  application: r.noteRaw || dArr[2] || '',
+                  casting_notes: `TPHH cập nhật từ Google Sheet: ${r.chemRaw}`,
                   chem: parsedChem,
                   mech: []
                 });
@@ -1389,7 +1411,7 @@
           }
           await doSearch(currentPage);
           if (!silent) {
-            alert(`Đã đồng bộ trực tiếp với Google Sheet 'NCCN-Vật liệu - Mác thép' (${rows.length - 1} dòng trên Sheet, tổng ${META.internal_materials} mác nội bộ)!`);
+            alert(`Đã đồng bộ 2 chiều thành công với Google Sheet 'NCCN-Vật liệu - Mác thép' (${normalizedRows.length} dòng trên Sheet, tổng ${META.internal_materials} mác nội bộ)!`);
           }
         }
       } catch (err) {
